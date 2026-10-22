@@ -1,16 +1,57 @@
-import { Client } from 'discord.js';
-
-const token = process.env.TOKEN;
+import { Client, ClientEvents, Collection } from 'discord.js';
+import { AmeConfig, SlashCommand } from '@structures/core';
+import { EventHandler, SlashCommandHandler } from '@handlers';
+import config_file from '@config';
+import { LogHelper, TimeHelper } from '@utils/helpers';
 
 /**
  * Main instance of the bot.
  */
 export class AmeClient extends Client {
+  /**
+   * Configuration of the client.
+   */
+  config = config_file as AmeConfig;
+
+  /**
+   * `Collection` of slash commands.
+   */
+  commands = new Collection<string, SlashCommand>();
+
+  /**
+   * `Collection` of developer slash commands.
+   */
+  dev_commands = new Collection<string, SlashCommand>();
+
+  /**
+   * `Collection` of client events.
+   */
+  events = new Collection<keyof ClientEvents, (client: AmeClient, ...args: any) => Promise<any>>();
+
+  /**
+   * The client's logger.
+   */
+  log = LogHelper.main;
+
+  /**
+   * Time since the bot was started.
+   */
+  startTime = TimeHelper.startTimer();
+
   constructor() {
     super({ intents: ['Guilds', 'GuildMembers', 'GuildMessages', 'MessageContent'] });
   }
 
+  /**
+   * Main startup routine of the bot.
+   */
   async start(): Promise<void> {
-    this.login(token);
+    this.log({
+      prefix: 'START',
+      message: 'executing startup routine...',
+    });
+    this.login(process.env.TOKEN);
+    EventHandler.registerEvents();
+    SlashCommandHandler.registerCommands();
   }
 }

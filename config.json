@@ -1,0 +1,22 @@
+{
+  "cooldown": {
+    "commands": 5,
+    "tracking": 15
+  },
+  "colors": {
+    "connection": "#E8BAFF",
+    "ok": "#BAFFC9",
+    "debug": "#F2BBC9",
+    "default": "#A9D979",
+    "error": "#FFB3BA",
+    "tracking": "#AD82D9",
+    "process": "#BAE1FF",
+    "warn": "#FFDFBA"
+  },
+  "emojis": {
+    "unknown_flag": "<:unknown_flag:1562571578452082780>"
+  },
+  "developer": 596481414426525696,
+  "debug": false,
+  "test_guild": 976981749848473610
+}
