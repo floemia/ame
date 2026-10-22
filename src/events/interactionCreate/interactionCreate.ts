@@ -14,21 +14,15 @@ export const run: Event<'interactionCreate'>['run'] = async (client, interaction
     if (time_left > 0) return await interaction.followUp('cooldown');
 
     try {
-      interaction.deferReply();
       await command.run(client, interaction);
     } catch (error: any) {
+      console.log(error);
       client.log({ type: 'error', message: error });
-      if (interaction.replied || interaction.deferred) {
-        await interaction.followUp({
-          content: 'There was an error while executing this command!',
-          flags: MessageFlags.Ephemeral,
-        });
-      } else {
-        await interaction.reply({
-          content: 'There was an error while executing this command!',
-          flags: MessageFlags.Ephemeral,
-        });
-      }
+      const replyMethod = interaction.replied || interaction.deferred ? interaction.followUp : interaction.reply;
+      await replyMethod({
+        content: 'There was an error while executing this command!',
+        flags: ['IsComponentsV2', 'Ephemeral'],
+      });
     }
   }
 };

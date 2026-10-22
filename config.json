@@ -14,6 +14,9 @@
     "warn": "#FFDFBA"
   },
   "emojis": {
+    "ok": "<:AmeOK:1562876643289071637>",
+    "warn": "<:AmeWarn:1562876739871313930>",
+    "error": "<:AmeError:1562876667758641162>",
     "unknown_flag": "<:unknown_flag:1562571578452082780>"
   },
   "developer": 596481414426525696,

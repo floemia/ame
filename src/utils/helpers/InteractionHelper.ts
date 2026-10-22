@@ -1,5 +1,5 @@
 import { client } from '@base';
-import { ContainerBuilder, Interaction } from 'discord.js';
+import { ChatInputCommandInteraction, ContainerBuilder, Interaction, MessageMentions } from 'discord.js';
 import { ColorHelper } from './ColorHelper';
 
 /**
@@ -38,5 +38,23 @@ export abstract class InteractionHelper {
       .addTextDisplayComponents((t) => t.setContent(message));
 
     return container;
+  }
+
+  static async replyError(interaction: ChatInputCommandInteraction, message: string) {
+    const container = this.createContainer(interaction, {
+      type: 'error',
+      message: `${client.config.emojis.error}  ${message}`,
+    });
+
+    const replyMethod = interaction.replied || interaction.deferred ? interaction.followUp : interaction.reply;
+    await replyMethod({
+      content: 'There was an error while executing this command!',
+      flags: ['IsComponentsV2', 'Ephemeral'],
+    });
+
+    await interaction.editReply({
+      components: [container],
+      flags: ['IsComponentsV2'],
+    });
   }
 }

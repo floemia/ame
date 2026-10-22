@@ -1,5 +1,5 @@
 import { Client, ClientEvents, Collection } from 'discord.js';
-import { AmeConfig, SlashCommand } from '@structures/core';
+import { SlashCommand } from '@structures/core';
 import { EventHandler, SlashCommandHandler } from '@handlers';
 import config_file from '@config';
 import { LogHelper, TimeHelper } from '@utils/helpers';
@@ -11,7 +11,7 @@ export class AmeClient extends Client {
   /**
    * Configuration of the client.
    */
-  config = config_file as AmeConfig;
+  config = config_file;
 
   /**
    * `Collection` of slash commands.

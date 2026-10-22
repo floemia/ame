@@ -1,9 +1,14 @@
-import { DroidUser } from '@floemia/osu-droid-tools';
+// import { DroidUser } from '@floemia/osu-droid-tools';
 import { SlashCommand } from '@structures/core';
-import { ProfileContainerBuilder } from '@utils/builders';
+// import { ProfileContainerBuilder } from '@utils/builders';
+import { InteractionHelper } from '@utils/helpers';
 import { SlashCommandBuilder } from 'discord.js';
 
-export const run: SlashCommand['run'] = async (client, interaction) => {};
+export const run: SlashCommand['run'] = async (client, interaction) => {
+  const uid = interaction.options.getNumber('uid');
+  const username = interaction.options.getString('username');
+  if (!uid && !username) return InteractionHelper.replyError(interaction, 'No parameters were provided!');
+};
 
 export const data: SlashCommand['data'] = new SlashCommandBuilder()
   .setName('link')

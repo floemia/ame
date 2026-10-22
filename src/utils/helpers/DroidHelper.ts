@@ -1,10 +1,42 @@
 import { client } from '@base';
 import { DroidUser } from '@floemia/osu-droid-tools';
+import { DatabaseManager } from '@utils/managers';
+import { ChatInputCommandInteraction, User } from 'discord.js';
 
 /**
  * Helps with osu!droid related operations.
  */
 export abstract class DroidHelper {
+  /**
+   * Returns a `DroidUser` based on the provided input.
+   * @param input The Discord `User`, a `ChatInputCommandInteraction`, a `string` or a `number` representing the UID or the username.
+   */
+  static async getUser(input: User | ChatInputCommandInteraction | string | number): Promise<DroidUser | undefined> {
+    if (input instanceof User) {
+      const data = DatabaseManager.getUserLink(input);
+      if (!data) return;
+      return DroidUser.get(data.uid);
+    }
+
+    // from command
+    if (input instanceof ChatInputCommandInteraction) {
+      // from mention
+      const mentionUser = input.options.getUser('user');
+      if (mentionUser) return DroidHelper.getUser(mentionUser);
+
+      // from option uid || username
+      const uid = input.options.getInteger('uid') || undefined;
+      const username = input.options.getString('username') || undefined;
+      if (uid || username) return DroidHelper.getUser((uid ?? username)!);
+
+      // from interaction author
+      return DroidHelper.getUser(input.user);
+    }
+
+    // input is string or number (username or uid)
+    return DroidUser.get(input as string | number);
+  }
+
   /**
    * Returns a full string representation of an osu!droid user.
    * @param user An instance of `DroidUser`.
