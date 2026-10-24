@@ -1,4 +1,5 @@
 import { AmeClient } from '@core';
+import { ResponseStrings } from '@localization/ResponseStrings';
 import { ChatInputCommandInteraction, SharedSlashCommand } from 'discord.js';
 
 /**
@@ -10,7 +11,7 @@ export interface SlashCommand {
    * @param client The instance of this client.
    * @param interaction The interaction that triggered the command.
    */
-  run(client: AmeClient, interaction: ChatInputCommandInteraction): Promise<any>;
+  run(client: AmeClient, interaction: ChatInputCommandInteraction, response: ResponseStrings): Promise<any>;
 
   /**
    * The cooldown of the slash command. Will use the default in `client.config.cooldown.commands` if not set.

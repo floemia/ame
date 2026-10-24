@@ -1,6 +1,7 @@
 import { ContainerBuilder } from 'discord.js';
 import { DroidUser } from '@floemia/osu-droid-tools';
 import { ColorHelper, DroidHelper } from '@utils/helpers';
+import { client } from '@base';
 
 /**
  * Builds osu!droid profile containers.
@@ -31,7 +32,9 @@ export class ProfileContainerBuilder extends ContainerBuilder {
           )
           .setThumbnailAccessory((t) => t.setURL(this.user.avatar_url)),
       )
-      .addSeparatorComponents((s) => s);
+      .addSeparatorComponents((s) => s)
+      .addTextDisplayComponents((s) => s.setContent(`-# ${client.config.emojis.ame}  **💙Ame💙・**@raincandy_U`));
+
     return this;
   }
 }

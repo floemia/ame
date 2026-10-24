@@ -5,19 +5,45 @@
   },
   "colors": {
     "connection": "#E8BAFF",
-    "ok": "#BAFFC9",
+    "ok": "#FFB3BA",
     "debug": "#F2BBC9",
     "default": "#A9D979",
-    "error": "#FFB3BA",
+    "error": "#FF6961",
     "tracking": "#AD82D9",
     "process": "#BAE1FF",
     "warn": "#FFDFBA"
   },
   "emojis": {
-    "ok": "<:AmeOK:1562876643289071637>",
+    "ame": "<:ame:1562894060916707481>",
+    "ok": "<:AmeOK:1562904707289186396>",
     "warn": "<:AmeWarn:1562876739871313930>",
-    "error": "<:AmeError:1562876667758641162>",
-    "unknown_flag": "<:unknown_flag:1562571578452082780>"
+    "error": "<:AmeError:1562900717533135061>",
+    "unknown_flag": "<:unknown_flag:1562571578452082780>",
+    "droid": "<:droid_simple:1021473577951821824>",
+    "status": {
+      "ranked": "<:ranked:1369494433288032426>",
+      "qualified": "<:qf_aprv:1369496051467288656>",
+      "graveyard": "<:graveyard:1369498405440589895>",
+      "loved": ":pink_heart:"
+    },
+    "attributes": {
+      "AR": "<:AR:1563005635044446238>",
+      "HP": "<:HP:1563005891891171368>",
+      "CS": "<:CS:1563005700949676042>",
+      "OD": "<:OD:1563005680749772870>",
+      "length": "<:length:1563010304999424042>",
+      "BPM": "<:BPM:1563010282371162222>"
+    },
+    "rank": {
+      "XH": "<:rankingXH:1563331553273192640>",
+      "X": "<:rankingX:1563332064936202380>",
+      "SH": "<:rankingSH:1563331516665172038>",
+      "S": "<:rankingS:1563331920878895104>",
+      "A": "<:rankingA:1563332324660084826>",
+      "B": "<:rankingB:1563332571561988166>",
+      "C": "<:rankingC:1563332788294254723>",
+      "D": "<:rankingD:1563332988048113734>"
+    }
   },
   "developer": 596481414426525696,
   "debug": false,

@@ -25,7 +25,7 @@ export abstract class TimeHelper {
   static secondsToMMSS(seconds: number): string {
     const minutes = Math.floor(seconds / 60);
     const secondsLeft = Math.ceil(seconds % 60);
-    const mm = `${minutes}`.padStart(2, '0');
+    const mm = `${minutes}`;
     const ss = `${secondsLeft}`.padStart(2, '0');
     return `${mm}:${ss}`;
   }

@@ -3,6 +3,7 @@ import { SlashCommand } from '@structures/core';
 import { EventHandler, SlashCommandHandler } from '@handlers';
 import config_file from '@config';
 import { LogHelper, TimeHelper } from '@utils/helpers';
+import { OsuAPIRequestBuilder } from '@rian8337/osu-base';
 
 /**
  * Main instance of the bot.
@@ -46,6 +47,7 @@ export class AmeClient extends Client {
    * Main startup routine of the bot.
    */
   async start(): Promise<void> {
+    OsuAPIRequestBuilder.setAPIKey(process.env.OSU_API_KEY!);
     this.log({
       prefix: 'START',
       message: 'executing startup routine...',

@@ -1,8 +1,18 @@
 import { client } from '@base';
-import { DroidUser } from '@floemia/osu-droid-tools';
+import { DroidScore, DroidUser } from '@floemia/osu-droid-tools';
+import { ResponseStrings } from '@localization/index';
 import { DatabaseManager } from '@utils/managers';
-import { ChatInputCommandInteraction, User } from 'discord.js';
-
+import { ChatInputCommandInteraction, ContainerBuilder, User } from 'discord.js';
+import { ColorHelper } from './ColorHelper';
+import {
+  RankedStatus,
+  Beatmap,
+  MapInfo,
+  BeatmapDecoder,
+  OsuAPIRequestBuilder,
+  OsuAPIResponse,
+  Modes,
+} from '@rian8337/osu-base';
 /**
  * Helps with osu!droid related operations.
  */
@@ -40,9 +50,10 @@ export abstract class DroidHelper {
   /**
    * Returns a full string representation of an osu!droid user.
    * @param user An instance of `DroidUser`.
+   * @param flagInMiddle Replaces the countrycode in the rank section with an emoji if true.
    * @returns 🇵🇾  floemiauwu・18,525.1pp (#1・PY #1)
    */
-  static userToFullString(user: DroidUser): string {
+  static userToFullString(user: DroidUser, flagInMiddle: boolean = false): string {
     const hasCountry = user.country ? true : false;
     const flag = hasCountry ? `:flag_${user.country}:` : client.config.emojis.unknown_flag;
     const username = user.username;
@@ -52,19 +63,21 @@ export abstract class DroidHelper {
       ? user.statistics.rank.country!.toLocaleString('en-US', { maximumFractionDigits: 2 })
       : '';
 
-    return `${flag}  ${username}・${pp_string}pp (#${rank}${hasCountry ? `・${user.country?.toUpperCase()} #${rank_country}` : ''})`;
+    return flagInMiddle
+      ? `${username}・${pp_string}pp (#${rank}${hasCountry ? `・${flag}  #${rank_country}` : ''})`
+      : `${flag}  ${username}・${pp_string}pp (#${rank}${hasCountry ? `・${user.country?.toUpperCase()} #${rank_country}` : ''})`;
   }
 
   /**
    * Returns a string representation of an osu!droid user.
    * @param user An instance of `DroidUser`.
-   * @returns 🇵🇾  floemiauwu
+   * @returns 🇵🇾  **floemiauwu**
    */
   static userToString(user: DroidUser): string {
     const hasCountry = user.country ? true : false;
     const flag = hasCountry ? `:flag_${user.country}:` : client.config.emojis.unknown_flag;
     const username = user.username;
-    return `${flag}  ${username}`;
+    return `${flag}  **${username}**`;
   }
 
   /**
@@ -96,5 +109,113 @@ export abstract class DroidHelper {
     level += curLevelReq / nextLevelReq;
 
     return level;
+  }
+
+  /**
+   * Creates a container, response from the command `/link` if it succeeds.
+   * @param user The `DroidUser` this Discord account was linked to.
+   * @param strings The localized `ResponseStrings`.
+   */
+  static createLinkContainer(user: DroidUser, strings: ResponseStrings): ContainerBuilder {
+    const container = new ContainerBuilder()
+      .setAccentColor(ColorHelper.hexToNumber(client.config.colors.ok))
+      .addSectionComponents((s) =>
+        s
+          .addTextDisplayComponents((t) =>
+            t.setContent(`### ${client.config.emojis.ok}  ${strings.done}\n${strings.commands.link.success(user)}`),
+          )
+          .setThumbnailAccessory((t) => t.setURL(user.avatar_url)),
+      )
+      .addSeparatorComponents((s) => s)
+      .addTextDisplayComponents((s) => s.setContent(`-# ${client.config.emojis.ame}  **💙Ame💙・**@raincandy_U`));
+    return container;
+  }
+
+  /**
+   * Returns the ranking status emoji of the beatmap.
+   * @param status See {@link RankedStatus}
+   */
+  static getRankStatusEmoji(status: RankedStatus): string {
+    switch (status) {
+      case -2:
+      case -1:
+      case 0:
+        return client.config.emojis.status.graveyard;
+      case 1:
+        return client.config.emojis.status.ranked;
+      case 2:
+      case 3:
+        return client.config.emojis.status.qualified;
+      default:
+        return client.config.emojis.status.loved;
+    }
+  }
+
+  static getScoreRankEmoji(rank: 'XH' | 'X' | 'SH' | 'S' | 'A' | 'B' | 'C' | 'D') {
+    return client.config.emojis.rank[rank];
+  }
+
+  /**
+   * Requests the .osu file from a beatmap and returns a `Beatmap` instance.
+   * @param input A `DroidScore` or the MD5 hash of a beatmap.
+   */
+  static async getBeatmap(input: DroidScore | string): Promise<Beatmap | null> {
+    let hash = '';
+    const isDroidScore = input instanceof DroidScore;
+    if (isDroidScore) hash = input.hash;
+
+    const request = new OsuAPIRequestBuilder().setEndpoint('get_beatmaps').addParameter('h', hash);
+    const result = await request.sendRequest();
+    if (result.statusCode !== 200) {
+      throw new Error(`osu! API error: ${result.describeFailure()}`);
+    }
+    const mapinfo = JSON.parse(result.data.toString('utf-8')).at(0) as OsuAPIResponse;
+    if (!mapinfo) {
+      return null;
+    }
+    if (parseInt(mapinfo.mode) !== 0) {
+      return null;
+    }
+
+    const db_beatmap = DatabaseManager.getBeatmap(mapinfo.beatmap_id);
+    console.log('h');
+    if (db_beatmap) {
+      console.log('db');
+      const decoded_beatmap = new BeatmapDecoder().decode(db_beatmap, Modes.Osu).result;
+      if (isDroidScore) {
+        const map_info = MapInfo.from(mapinfo, decoded_beatmap);
+        input.map_info = map_info;
+        input.beatmap = decoded_beatmap;
+      }
+      return decoded_beatmap;
+    }
+
+    let beatmap_file;
+    const url = `https://osu.ppy.sh/osu/${mapinfo.beatmap_id.toString()}`;
+    try {
+      const data = await fetch(url);
+      const text = await data.text();
+      if (data.status >= 500) throw new Error(text);
+      beatmap_file = text;
+    } catch (e) {
+      client.log({
+        type: 'error',
+        message: `Requesting beatmap ${hash} failed, aborting`,
+      });
+      return null;
+    }
+    if (!beatmap_file) return null;
+
+    const decoded_beatmap = new BeatmapDecoder().decode(beatmap_file).result;
+    console.log(decoded_beatmap.difficulty);
+    if (isDroidScore) {
+      const map_info = MapInfo.from(mapinfo, decoded_beatmap);
+      input.map_info = map_info;
+      console.log(map_info.beatmap.difficulty);
+      input.beatmap = decoded_beatmap;
+    }
+
+    DatabaseManager.storeBeatmap(hash, decoded_beatmap.metadata.beatmapId!, beatmap_file);
+    return decoded_beatmap;
   }
 }

@@ -4,7 +4,6 @@ import { ProfileContainerBuilder } from '@utils/builders';
 import { SlashCommandBuilder } from 'discord.js';
 
 export const run: SlashCommand['run'] = async (client, interaction) => {
-  await interaction.deferReply();
   const user = await DroidUser.get(177955);
   const container = await new ProfileContainerBuilder(user!).createSmallProfile();
 
@@ -16,6 +15,6 @@ export const run: SlashCommand['run'] = async (client, interaction) => {
 
 export const data: SlashCommand['data'] = new SlashCommandBuilder()
   .setName('profile')
-  .setDescription('Shows the information of an user.');
+  .setDescription('shows the information of a user.');
 
 export const dirname = __dirname;

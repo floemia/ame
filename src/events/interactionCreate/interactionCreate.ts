@@ -1,28 +1,25 @@
 import { Event } from '@structures/core';
 import { CooldownHandler } from '@handlers';
-import { MessageFlags } from 'discord.js';
+import { InteractionHelper, LocalizationHelper } from '@utils/helpers';
 
 export const name = 'interactionCreate';
 
 export const run: Event<'interactionCreate'>['run'] = async (client, interaction) => {
-  // is a slash command!
+  const strings = LocalizationHelper.getLocaleStrings(interaction.locale);
+  // is a slash command
   if (interaction.isChatInputCommand()) {
     const command = client.commands.get(interaction.commandName) || client.dev_commands.get(interaction.commandName);
     if (!command) return;
     CooldownHandler.addCommand(command);
     const time_left = CooldownHandler.timeLeft(command, interaction.user);
-    if (time_left > 0) return await interaction.followUp('cooldown');
+    if (time_left > 0) return InteractionHelper.replyCooldown(interaction, time_left, strings);
 
     try {
-      await command.run(client, interaction);
+      await interaction.deferReply();
+      await command.run(client, interaction, strings);
     } catch (error: any) {
-      console.log(error);
-      client.log({ type: 'error', message: error });
-      const replyMethod = interaction.replied || interaction.deferred ? interaction.followUp : interaction.reply;
-      await replyMethod({
-        content: 'There was an error while executing this command!',
-        flags: ['IsComponentsV2', 'Ephemeral'],
-      });
+      client.log({ type: 'error', message: error.stack });
+      await InteractionHelper.replyError(interaction, strings.error);
     }
   }
 };

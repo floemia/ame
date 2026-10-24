@@ -20,7 +20,9 @@
       "@structures/*": ["./src/structures/*"],
       "@handlers": ["./src/handlers/"],
       "@builders": ["./src/handlers/"],
-      "@utils/*": ["./src/utils/*"]
+      "@utils/*": ["./src/utils/*"],
+      "@localization/*": ["./src/localization/*"],
+      "@localization": ["./src/localization"]
     }
   },
   "include": ["src"]

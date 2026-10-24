@@ -12,23 +12,31 @@ const root = path.join(__dirname, '../../..');
  */
 export abstract class DatabaseManager {
   /**
-   * The path to the database file.
+   * The path to the database files.
    */
-  private static readonly databasePath: string = path.join(root, './db/LinkedUsers.db');
+  private static readonly db_path: string = path.join(root, './db/');
 
   /**
-   * The SQLite database instance, created on first use.
+   * The `DroidUser` link database.
    */
   private static link_db: Database.Database | undefined;
 
   /**
-   * Gets the SQLite database instance, creating the database file and table if they do not exist yet.
-   * @returns The SQLite database instance.
+   * The `Beatmap`s link database.
    */
+  private static beatmaps_db: Database.Database | undefined;
+
+  /**
+   * Creates the database directory if it doesn't exist
+   */
+  private static restoreDatabaseDir(): void {
+    fs.mkdirSync(this.db_path, { recursive: true });
+  }
+
   private static getUserLinkDatabase(): Database.Database {
     if (this.link_db) return this.link_db;
-    fs.mkdirSync(path.dirname(this.databasePath), { recursive: true });
-    const database = new Database(this.databasePath);
+    this.restoreDatabaseDir();
+    const database = new Database(path.join(this.db_path, 'LinkedUsers.db'));
     database.exec(
       'CREATE TABLE IF NOT EXISTS linked_users (' +
         'discord_id TEXT PRIMARY KEY NOT NULL,' +
@@ -39,6 +47,15 @@ export abstract class DatabaseManager {
     return database;
   }
 
+  private static getBeatmapDatabase(): Database.Database {
+    if (this.beatmaps_db) return this.beatmaps_db;
+    this.restoreDatabaseDir();
+    const database = new Database(path.join(this.db_path, 'Beatmaps.db'));
+    database.exec('CREATE TABLE IF NOT EXISTS beatmaps (id INTEGER UNIQUE, hash TEXT PRIMARY KEY,data TEXT NOT NULL)');
+    this.beatmaps_db = database;
+    return database;
+  }
+
   /**
    * Stores a link between a Discord user and an osu!droid profile.
    *
@@ -46,19 +63,13 @@ export abstract class DatabaseManager {
    * @param user The Discord user.
    * @param droidUser The osu!droid user to link the Discord user to.
    */
-  static linkDroidUser(user: User, droidUser: DroidUser): DroidLinkData {
-    const link: DroidLinkData = {
-      discord_id: user.id,
-      uid: droidUser.id,
-      linked_date: Date.now(),
-    };
+  static linkDroidUser(user: User, droidUser: DroidUser): void {
     this.getUserLinkDatabase()
       .prepare(
         'INSERT INTO linked_users (discord_id, uid, linked_date) VALUES (?, ?, ?) ' +
           'ON CONFLICT(discord_id) DO UPDATE SET uid = excluded.uid, linked_date = excluded.linked_date',
       )
-      .run(link.discord_id, link.uid, link.linked_date);
-    return link;
+      .run(user.id, droidUser.id, Date.now());
   }
 
   /**
@@ -66,9 +77,41 @@ export abstract class DatabaseManager {
    * @param user The Discord user.
    */
   static getUserLink(user: User): DroidLinkData | undefined {
-    const row = this.getUserLinkDatabase()
+    return this.getUserLinkDatabase()
       .prepare('SELECT discord_id, uid, linked_date FROM linked_users WHERE discord_id = ?')
       .get(user.id) as DroidLinkData | undefined;
-    return row;
+  }
+
+  /**
+   * Retrieves the content of a stored .osu beatmap file.
+   * @param hashOrID The ID or the MD5 hash of the beatmap.
+   */
+  static getBeatmap(hashOrID: string | number): string | undefined {
+    return this.getBeatmapDatabase()
+      .prepare(
+        typeof hashOrID == 'string'
+          ? 'SELECT data FROM beatmaps WHERE hash = ?'
+          : 'SELECT data FROM beatmaps WHERE id = ?',
+      )
+      .get(hashOrID) as string | undefined;
+  }
+
+  /**
+   * Stores a beatmap into the database.
+   * @param hash MD5 hash of the beatmap.
+   * @param id ID of the beatmap.
+   * @param osu_file The contents of the .osu file.
+   */
+  static storeBeatmap(hash: string, id: number, osu_file: string): void {
+    this.getBeatmapDatabase()
+      .prepare(
+        `
+  INSERT INTO beatmaps (id, hash, data)
+  VALUES (@id, @hash, @data)
+  ON CONFLICT(hash) DO UPDATE SET
+    id = COALESCE(excluded.id, beatmaps.id),
+    data = excluded.data`,
+      )
+      .run({ id, hash, data: osu_file });
   }
 }
