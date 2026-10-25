@@ -1,5 +1,5 @@
 import { DroidUser } from '@floemia/osu-droid-tools';
-import { DroidLinkData } from '@structures/osu!droid';
+import { BeatmapDBEntry, DroidLinkData } from '@structures/database';
 import Database from 'better-sqlite3';
 import { User } from 'discord.js';
 import fs from 'fs';
@@ -86,14 +86,12 @@ export abstract class DatabaseManager {
    * Retrieves the content of a stored .osu beatmap file.
    * @param hashOrID The ID or the MD5 hash of the beatmap.
    */
-  static getBeatmap(hashOrID: string | number): string | undefined {
-    return this.getBeatmapDatabase()
-      .prepare(
-        typeof hashOrID == 'string'
-          ? 'SELECT data FROM beatmaps WHERE hash = ?'
-          : 'SELECT data FROM beatmaps WHERE id = ?',
-      )
-      .get(hashOrID) as string | undefined;
+  static getBeatmap(hash: string): string | undefined {
+    const entry = this.getBeatmapDatabase()
+      .prepare('SELECT data FROM beatmaps WHERE hash = ?')
+      .get(hash) as BeatmapDBEntry;
+    if (!entry) return;
+    return entry.data;
   }
 
   /**

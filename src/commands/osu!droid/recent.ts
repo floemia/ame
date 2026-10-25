@@ -2,19 +2,23 @@ import { SlashCommand } from '@structures/core';
 import { SlashCommandBuilder } from 'discord.js';
 import { DroidHelper } from '@utils/helpers';
 import { ScoreContainerBuilder } from '@utils/builders';
+import { CacheManager } from '@utils/managers';
 
 export const run: SlashCommand['run'] = async (client, interaction, strings) => {
   const user = await DroidHelper.getUser(interaction);
   if (!user) return;
-  const index = interaction.options.getInteger('index');
+  console.log('A');
 
-  const container = await new ScoreContainerBuilder()
-    .setPlayer(user)
-    .setScore(user.scores.recent[index ? index - 1 : 0]);
+  const index = interaction.options.getInteger('index') || 1;
+
+  const container = await new ScoreContainerBuilder().setPlayer(user).setScore(user.scores.recent[index - 1]);
   await interaction.editReply({
+    content: '',
     components: [container],
     flags: 'IsComponentsV2',
   });
+  if (user.scores.recent[index].beatmap)
+    CacheManager.storeChannelBeatmap(interaction.channel!, user.scores.recent[index].hash);
 };
 
 export const data: SlashCommand['data'] = new SlashCommandBuilder()

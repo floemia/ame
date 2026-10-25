@@ -1,18 +1,12 @@
 import { client } from '@base';
 import { DroidScore, DroidUser } from '@floemia/osu-droid-tools';
 import { ResponseStrings } from '@localization/index';
-import { DatabaseManager } from '@utils/managers';
+import { CacheManager, DatabaseManager } from '@utils/managers';
 import { ChatInputCommandInteraction, ContainerBuilder, User } from 'discord.js';
 import { ColorHelper } from './ColorHelper';
-import {
-  RankedStatus,
-  Beatmap,
-  MapInfo,
-  BeatmapDecoder,
-  OsuAPIRequestBuilder,
-  OsuAPIResponse,
-  Modes,
-} from '@rian8337/osu-base';
+import { RankedStatus, MapInfo, BeatmapDecoder, OsuAPIRequestBuilder, OsuAPIResponse, Modes } from '@rian8337/osu-base';
+import { LocalizationHelper } from './LocalizationHelper';
+import { AmeError } from '@structures/core/AmeError';
 /**
  * Helps with osu!droid related operations.
  */
@@ -25,22 +19,34 @@ export abstract class DroidHelper {
     if (input instanceof User) {
       const data = DatabaseManager.getUserLink(input);
       if (!data) return;
+
       return DroidUser.get(data.uid);
     }
 
     // from command
     if (input instanceof ChatInputCommandInteraction) {
+      const strings = LocalizationHelper.getLocaleStrings(input.locale);
       // from mention
       const mentionUser = input.options.getUser('user');
-      if (mentionUser) return DroidHelper.getUser(mentionUser);
+      if (mentionUser) {
+        const user = DroidHelper.getUser(mentionUser);
+        if (!user) throw new AmeError(strings.mention_no_link);
+        return user;
+      }
 
       // from option uid || username
       const uid = input.options.getInteger('uid') || undefined;
       const username = input.options.getString('username') || undefined;
-      if (uid || username) return DroidHelper.getUser((uid ?? username)!);
+      if (uid || username) {
+        const user = DroidHelper.getUser((uid ?? username)!);
+        if (!user) throw new AmeError(strings.user_dne);
+        return user;
+      }
 
       // from interaction author
-      return DroidHelper.getUser(input.user);
+      const user = DroidHelper.getUser(input.user);
+      if (!user) throw new AmeError(strings.no_link);
+      return user;
     }
 
     // input is string or number (username or uid)
@@ -156,15 +162,88 @@ export abstract class DroidHelper {
   }
 
   /**
-   * Requests the .osu file from a beatmap and returns a `Beatmap` instance.
-   * @param input A `DroidScore` or the MD5 hash of a beatmap.
+   * Extracts the beatmap ID from various osu! URL formats.
+   * @param input The osu! beatmap URL or ID.
    */
-  static async getBeatmap(input: DroidScore | string): Promise<Beatmap | null> {
-    let hash = '';
-    const isDroidScore = input instanceof DroidScore;
-    if (isDroidScore) hash = input.hash;
+  static getBeatmapId(input: string): number | null {
+    const trimmed = input.trim();
 
-    const request = new OsuAPIRequestBuilder().setEndpoint('get_beatmaps').addParameter('h', hash);
+    // input is ID itself
+    if (/^\d+$/.test(trimmed)) {
+      return parseInt(trimmed);
+    }
+
+    try {
+      const url = new URL(input);
+      const path = url.pathname;
+      const hash = url.hash;
+
+      // #osu/2668755
+      if (hash) {
+        const match = hash.match(/\/(\d+)$/);
+        if (match) {
+          return parseInt(match[1]);
+        }
+      }
+
+      // /b/2668755
+      if (path.startsWith('/b/')) {
+        const segments = path.split('/');
+        const id = segments[2];
+        if (id && /^\d+$/.test(id)) {
+          return parseInt(id);
+        }
+      }
+
+      // /beatmapsets/osu/2668755
+      const match = path.match(/\/(\d+)$/);
+      if (match) {
+        return parseInt(match[1]);
+      }
+
+      return null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  /**
+   * Requests the .osu file from a beatmap and returns a `Beatmap` instance.
+   * @param input A `DroidScore`, the ID or the MD5 hash of a beatmap.
+   */
+  static async getBeatmap(input: DroidScore | ChatInputCommandInteraction | string): Promise<MapInfo<true> | null> {
+    let hash;
+    let hashOrID: string | number = '';
+    if (input instanceof ChatInputCommandInteraction) {
+      const strings = LocalizationHelper.getLocaleStrings(input.locale);
+      let beatmapIDURL = input.options.getString('beatmap');
+      if (!beatmapIDURL) {
+        const cached_idOrHash = CacheManager.getChannelBeatmap(input.channel!);
+        if (!cached_idOrHash) throw new AmeError(strings.commands.compare.no_cache);
+        hashOrID = cached_idOrHash;
+      } else {
+        const id = DroidHelper.getBeatmapId(beatmapIDURL);
+        if (!id) throw new AmeError(strings.commands.compare.no_map);
+      }
+    }
+
+    const isDroidScore = input instanceof DroidScore;
+    if (isDroidScore) {
+      hash = (input as DroidScore).hash;
+      hashOrID = hash;
+    }
+    if (!hashOrID) {
+      if (typeof input == 'string') {
+        const id = DroidHelper.getBeatmapId(input);
+        if (!id) return null;
+        hashOrID = id;
+      }
+      hashOrID = input as string | number;
+    }
+
+    const request = new OsuAPIRequestBuilder()
+      .setEndpoint('get_beatmaps')
+      .addParameter(typeof hashOrID === 'string' ? 'h' : 'b', hashOrID);
     const result = await request.sendRequest();
     if (result.statusCode !== 200) {
       throw new Error(`osu! API error: ${result.describeFailure()}`);
@@ -176,18 +255,19 @@ export abstract class DroidHelper {
     if (parseInt(mapinfo.mode) !== 0) {
       return null;
     }
+    hash = mapinfo.file_md5;
 
-    const db_beatmap = DatabaseManager.getBeatmap(mapinfo.beatmap_id);
-    console.log('h');
+    const db_beatmap = DatabaseManager.getBeatmap(isDroidScore ? input.hash : mapinfo.beatmap_id);
     if (db_beatmap) {
-      console.log('db');
+      console.log('hola');
       const decoded_beatmap = new BeatmapDecoder().decode(db_beatmap, Modes.Osu).result;
+      const map_info = MapInfo.from(mapinfo, decoded_beatmap);
+      // console.log(map_info);
       if (isDroidScore) {
-        const map_info = MapInfo.from(mapinfo, decoded_beatmap);
         input.map_info = map_info;
         input.beatmap = decoded_beatmap;
       }
-      return decoded_beatmap;
+      return map_info;
     }
 
     let beatmap_file;
@@ -207,15 +287,13 @@ export abstract class DroidHelper {
     if (!beatmap_file) return null;
 
     const decoded_beatmap = new BeatmapDecoder().decode(beatmap_file).result;
-    console.log(decoded_beatmap.difficulty);
+    const fullmap = MapInfo.from(mapinfo, decoded_beatmap);
     if (isDroidScore) {
-      const map_info = MapInfo.from(mapinfo, decoded_beatmap);
-      input.map_info = map_info;
-      console.log(map_info.beatmap.difficulty);
+      input.map_info = fullmap;
       input.beatmap = decoded_beatmap;
     }
 
     DatabaseManager.storeBeatmap(hash, decoded_beatmap.metadata.beatmapId!, beatmap_file);
-    return decoded_beatmap;
+    return fullmap;
   }
 }

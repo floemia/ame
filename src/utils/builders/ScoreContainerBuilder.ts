@@ -3,14 +3,10 @@ import { DroidScore, DroidUser } from '@floemia/osu-droid-tools';
 import { ColorHelper, DroidHelper, TimeHelper } from '@utils/helpers';
 import { ContainerBuilder, APIContainerComponent } from 'discord.js';
 import { ModUtil, Modes } from '@rian8337/osu-base';
+import { CacheManager } from '@utils/managers';
 
 // to help with resets
 let containerWithUser: APIContainerComponent;
-
-/**
- * Cache for already generated containers.
- */
-const score_containers: Map<number, APIContainerComponent> = new Map();
 
 /**
  * Builds containers that display osu!droid scores.
@@ -33,8 +29,8 @@ export class ScoreContainerBuilder extends ContainerBuilder {
   }
 
   async setScore(score: DroidScore) {
-    const cache_container = score_containers.get(score.id);
-    if (cache_container) return new ScoreContainerBuilder(cache_container);
+    const cache_container = CacheManager.getScoreContainer(score);
+    if (cache_container) return cache_container;
 
     const container = new ScoreContainerBuilder(containerWithUser);
 
@@ -131,7 +127,7 @@ export class ScoreContainerBuilder extends ContainerBuilder {
         ),
       );
 
-    score_containers.set(score.id, container.toJSON());
+    CacheManager.storeScoreContainer(score, container);
     return container;
   }
 }

@@ -1,6 +1,7 @@
 import { Event } from '@structures/core';
 import { CooldownHandler } from '@handlers';
 import { InteractionHelper, LocalizationHelper } from '@utils/helpers';
+import { AmeError } from '@structures/core/AmeError';
 
 export const name = 'interactionCreate';
 
@@ -18,8 +19,11 @@ export const run: Event<'interactionCreate'>['run'] = async (client, interaction
       await interaction.deferReply();
       await command.run(client, interaction, strings);
     } catch (error: any) {
+      if (error instanceof AmeError) {
+        return InteractionHelper.replyError(interaction, error.message);
+      }
       client.log({ type: 'error', message: error.stack });
-      await InteractionHelper.replyError(interaction, strings.error);
+      return InteractionHelper.replyError(interaction, strings.error);
     }
   }
 };
