@@ -14,7 +14,6 @@
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
     "paths": {
-      "@config": ["./config.json"],
       "@base": ["./src/index"],
       "@core": ["./src/core/index"],
       "@structures/*": ["./src/structures/*"],

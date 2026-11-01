@@ -1,7 +1,7 @@
 import { Client, ClientEvents, Collection } from 'discord.js';
 import { ContextMenuCommand, MessageCommand, SlashCommand } from '@structures/core';
 import { EventHandler, InteractionHandler, MessageCommandHandler } from '@handlers';
-import config_file from '@config';
+import config_file from '../../config.json';
 import { LogHelper, TimeHelper } from '@utils/helpers';
 import { OsuAPIRequestBuilder } from '@rian8337/osu-base';
 
