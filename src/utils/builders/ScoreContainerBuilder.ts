@@ -117,7 +117,7 @@ export class ScoreContainerBuilder extends ContainerBuilder {
         ),
     );
 
-    InteractionHelper.addSignatureToContainer(container, `<t:${score.played_at.getTime() / 1000}`);
+    InteractionHelper.addSignatureToContainer(container, `<t:${score.played_at.getTime() / 1000}:R>`);
     CacheManager.storeScoreContainer(score, container);
 
     return container;

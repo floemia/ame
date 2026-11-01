@@ -1,6 +1,6 @@
 {
   "developer": "596481414426525696",
-  "debug": true,
+  "debug": false,
   "test_guild": "976981749848473610",
   "tracking": {
     "enabled": false,
