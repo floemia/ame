@@ -16,6 +16,7 @@ export class ResponseStrings {
   no_params = `you didnt give me any parameter!!!`;
   no_perms = `you dont have perms to do that bro smh💢💢💢💢`;
   no_scores = 'that user doesnt have any scores... 🥺';
+  command_disabled = `this command is temporarily disabled...🥺`;
 
   commands = {
     ame: {
@@ -44,6 +45,9 @@ export class ResponseStrings {
       no_score: 'you dont have any scores in that beatmap!! smh💢',
       success: (user: DroidUser) =>
         `${EmojiHelper.getRandomAmeEmoji()} | comparison score from  ${DroidHelper.userToString(user)}:\n-# ${client.config.emojis.warn} the osu!droid public API currently doesn't return mods! expect errors!`,
+    },
+    config: {
+      prefix_set: (prefix: string) => `done!! the message command prefix is now \`${prefix}\`!!`,
     },
     tracking: {
       channel_set: (channel: TextChannel, has_perms: boolean) =>

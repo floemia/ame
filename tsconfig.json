@@ -19,7 +19,6 @@
       "@core": ["./src/core/index"],
       "@structures/*": ["./src/structures/*"],
       "@handlers": ["./src/handlers/"],
-      "@builders": ["./src/handlers/"],
       "@utils/*": ["./src/utils/*"],
       "@localization/*": ["./src/localization/*"],
       "@localization": ["./src/localization"]

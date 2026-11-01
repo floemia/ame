@@ -14,6 +14,8 @@ export const run: Event<'interactionCreate'>['run'] = async (client, interaction
       ? client.commands.get(interaction.commandName) || client.dev_commands.get(interaction.commandName)
       : client.context_commands.get(interaction.commandName);
     if (!command) return;
+    if (command.disabled) return InteractionHelper.replyError(interaction, strings.command_disabled);
+
     CooldownHandler.addCommand(command);
     const time_left = CooldownHandler.timeLeft(command, interaction.user);
     if (time_left > 0) return InteractionHelper.replyCooldown(interaction, time_left, strings);
@@ -22,10 +24,10 @@ export const run: Event<'interactionCreate'>['run'] = async (client, interaction
       await command.run(client, interaction as any, strings);
     } catch (error: any) {
       if (error instanceof AmeError) {
-        return InteractionHelper.replyError(interaction as any, error.message);
+        return InteractionHelper.replyError(interaction, error.message);
       }
       client.log({ type: 'error', message: error.stack });
-      return InteractionHelper.replyError(interaction as any, strings.error);
+      return InteractionHelper.replyError(interaction, strings.error);
     }
   }
 

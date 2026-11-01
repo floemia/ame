@@ -6,6 +6,7 @@ import { ColorHelper, InteractionHelper, LocalizationHelper } from '@utils/helpe
 import {
   APIContainerComponent,
   ChatInputCommandInteraction,
+  CommandInteraction,
   ComponentType,
   ContainerBuilder,
   Message,
@@ -20,44 +21,34 @@ import { DroidScore, DroidUser } from '@floemia/osu-droid-tools';
 export abstract class DroidHelper {
   /**
    * Returns a `DroidUser` based on the provided input.
-   * @param input The Discord `User`, a `ChatInputCommandInteraction`, a `string` or a `number` representing the UID or the username.
+   * @param input A `ChatInputCommandInteraction`, a `string` or a `number` representing the UID or the username.
    */
-  static async getUser(input: User | ChatInputCommandInteraction | string | number): Promise<DroidUser | undefined> {
+  static async getUser(input: User | CommandInteraction | string | number): Promise<DroidUser> {
+    const strings = LocalizationHelper.getLocaleStrings(input instanceof CommandInteraction ? input.locale : 'en-US');
+
     if (input instanceof User) {
-      const data = DatabaseManager.getUserLink(input);
-      if (!data) return;
-
-      return DroidUser.get(data.uid);
-    }
-
-    // from command
-    if (input instanceof ChatInputCommandInteraction) {
-      const strings = LocalizationHelper.getLocaleStrings(input.locale);
-      // from mention
-      const mentionUser = input.options.getUser('user');
-      if (mentionUser) {
-        const user = DroidHelper.getUser(mentionUser);
-        if (!user) throw new AmeError(strings.mention_no_link);
-        return user;
-      }
-
-      // from option uid || username
-      const uid = input.options.getInteger('uid') || undefined;
-      const username = input.options.getString('username') || undefined;
-      if (uid || username) {
-        const user = DroidHelper.getUser((uid ?? username)!);
-        if (!user) throw new AmeError(strings.user_dne);
-        return user;
-      }
-
-      // from interaction author
-      const user = DroidHelper.getUser(input.user);
-      if (!user) throw new AmeError(strings.no_link);
+      const uid_or_username = this.resolveUser(input);
+      const user = await DroidUser.get(uid_or_username);
+      if (!user) throw new AmeError(strings.user_dne);
       return user;
     }
 
-    // input is string or number (username or uid)
-    return DroidUser.get(input as string | number);
+    if (input instanceof CommandInteraction) {
+      const uid_or_username = this.resolveUser(input);
+      const user = await DroidUser.get(uid_or_username);
+      if (!user) throw new AmeError(strings.user_dne);
+      return user;
+    }
+
+    // input is mention of user (<@19812492>)
+    if (typeof input == 'string' && input.startsWith('<@')) {
+      const user = await client.users.fetch(input.replace(/\D/g, ''));
+      if (!user) throw new AmeError('invalid discord user!!');
+      return this.getUser(user);
+    }
+    const user = await DroidUser.get(input as string | number);
+    if (!user) throw new AmeError(strings.user_dne);
+    return user;
   }
 
   /**
@@ -352,5 +343,24 @@ export abstract class DroidHelper {
     const scores = await DroidScore.search({ user: uid, beatmapOrHash: beatmap, order: bestpp ? 'pp' : 'score' });
     if (scores.length == 0) return undefined;
     return scores[0];
+  }
+
+  static resolveUser(input: User | CommandInteraction): string | number {
+    const strings = LocalizationHelper.getLocaleStrings(input instanceof CommandInteraction ? input.locale : 'en-US');
+    if (input instanceof User) {
+      const db_user = DatabaseManager.getUserLink(input);
+      if (!db_user) throw new AmeError(strings.mention_no_link);
+      return db_user.uid;
+    } else {
+      if (input instanceof ChatInputCommandInteraction) {
+        const mention_user = input.options.getUser('user');
+        if (mention_user) return this.resolveUser(mention_user);
+
+        const username = input.options.getString('username');
+        const uid = input.options.getInteger('uid');
+        if (username || uid) return (uid ?? username)!;
+      }
+      return this.resolveUser(input.user);
+    }
   }
 }

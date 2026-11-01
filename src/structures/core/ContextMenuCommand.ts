@@ -6,7 +6,7 @@ import { Command } from '@structures/core';
 /**
  * A generic context menu command.
  */
-export interface ContextMenuCommand extends Command {
+export interface ContextMenuCommand extends Command<MessageContextMenuCommandInteraction> {
   /**
    * The main function of the context menu command.
    * @param client The instance of this client.

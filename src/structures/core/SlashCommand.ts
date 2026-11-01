@@ -6,7 +6,7 @@ import { Command } from '@structures/core';
 /**
  * A generic slash command.
  */
-export interface SlashCommand extends Command {
+export interface SlashCommand extends Command<ChatInputCommandInteraction> {
   /**
    * The main function of the slash command.
    * @param client The instance of this client.

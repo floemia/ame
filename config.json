@@ -1,4 +1,11 @@
 {
+  "developer": "596481414426525696",
+  "debug": true,
+  "test_guild": "976981749848473610",
+  "tracking": {
+    "enabled": false,
+    "interval": 20
+  },
   "cooldown": {
     "commands": 5,
     "avatar": 1800,
@@ -56,12 +63,5 @@
       "right": "<:arrowright:968284085342584912>",
       "rightall": "<:lastarrowright:968284085652963368>"
     }
-  },
-  "developer": "596481414426525696",
-  "debug": true,
-  "test_guild": "976981749848473610",
-  "tracking": {
-    "enabled": false,
-    "interval": 20
   }
 }

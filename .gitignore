@@ -5,3 +5,4 @@ dist/
 db/
 ame.db
 ame.db-*
+config.json

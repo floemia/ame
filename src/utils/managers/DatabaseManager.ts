@@ -50,8 +50,12 @@ export abstract class DatabaseManager {
         'last_score_date INTEGER NOT NULL);' +
         'CREATE TABLE IF NOT EXISTS server_configs (' +
         'guild_id TEXT PRIMARY KEY NOT NULL,' +
+        "prefix TEXT NOT NULL DEFAULT '='," +
         'tracking TEXT NOT NULL)',
     );
+    const columns = database.prepare('PRAGMA table_info(server_configs)').all() as { name: string }[];
+    if (!columns.some((column) => column.name === 'prefix'))
+      database.exec("ALTER TABLE server_configs ADD COLUMN prefix TEXT NOT NULL DEFAULT '='");
     this.db = database;
     return database;
   }
@@ -96,7 +100,7 @@ export abstract class DatabaseManager {
       if (client.config.debug)
         client.log({
           prefix: 'DEBUG',
-          message: `${user.id} - ${user.username}, saved in link database`,
+          message: `${user.id} - ${user.username}, not in link database`,
         });
     }
 
@@ -279,17 +283,34 @@ export abstract class DatabaseManager {
   }
 
   /**
+   * Stores the message command prefix of a server.
+   * @param guild The Discord server.
+   * @param prefix The prefix to set.
+   */
+  static setGuildPrefix(guild: Guild, prefix: string): void {
+    const settings = this.initGuildConfig(guild);
+    settings.prefix = prefix;
+    this.getDatabase()
+      .prepare(
+        'INSERT INTO server_configs (guild_id, prefix, tracking) VALUES (?, ?, ?) ' +
+          'ON CONFLICT(guild_id) DO UPDATE SET prefix = excluded.prefix',
+      )
+      .run(guild.id, prefix, JSON.stringify(settings.tracking));
+  }
+
+  /**
    * Retrieves a Discord server's configuration. `undefined` if not configured.
    * @param guild The Discord server or its ID.
    */
   static getGuildConfig(guild: Guild): ServerConfig {
     const settings = this.getDatabase()
-      .prepare('SELECT guild_id, tracking FROM server_configs WHERE guild_id = ?')
+      .prepare('SELECT guild_id, prefix, tracking FROM server_configs WHERE guild_id = ?')
       .get(guild.id) as ServerDBEntry | undefined;
     if (!settings) return this.createConfig(guild);
     const tracking_config = JSON.parse(settings.tracking) as TrackingConfig;
     return {
-      guild_id: settings?.guild_id,
+      guild_id: settings.guild_id,
+      prefix: settings.prefix,
       tracking: tracking_config,
     };
   }
@@ -316,8 +337,8 @@ export abstract class DatabaseManager {
       enabled: true,
     };
     this.getDatabase()
-      .prepare('INSERT INTO server_configs (guild_id, tracking) VALUES (?, ?)')
-      .run(guild.id, JSON.stringify(default_tracking));
+      .prepare('INSERT INTO server_configs (guild_id, prefix, tracking) VALUES (?, ?, ?)')
+      .run(guild.id, '=', JSON.stringify(default_tracking));
     if (client.config.debug)
       client.log({
         prefix: 'DEBUG',
@@ -329,6 +350,6 @@ export abstract class DatabaseManager {
    * Retrieves every Discord server configuration.
    */
   static getGuildConfigs(): ServerConfig[] {
-    return this.getDatabase().prepare('SELECT guild_id, tracking FROM server_configs').all() as ServerConfig[];
+    return this.getDatabase().prepare('SELECT guild_id, prefix, tracking FROM server_configs').all() as ServerConfig[];
   }
 }

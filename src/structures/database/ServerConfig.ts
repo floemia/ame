@@ -1,5 +1,6 @@
 export interface ServerDBEntry {
   guild_id: string;
+  prefix: string;
   tracking: string;
 }
 
@@ -11,6 +12,11 @@ export interface ServerConfig {
    * The ID of the Discord server.
    */
   guild_id: string;
+
+  /**
+   * The prefix used to call message commands in this server.
+   */
+  prefix: string;
 
   /**
    * Configration of the score tracking system for this server.

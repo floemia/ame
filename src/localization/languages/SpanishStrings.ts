@@ -17,6 +17,7 @@ export class SpanishStrings extends ResponseStrings {
   no_params = `no me diste ningún parámetro!!!`;
   no_perms = `herman@ no tienes permiso para hacer eso smh💢💢💢💢`;
   no_scores = 'ese usuario no tiene ningún score... 🥺';
+  command_disabled = `este comando está temporalmente deshabilitado...🥺`;
 
   commands = {
     ame: {
@@ -47,6 +48,9 @@ export class SpanishStrings extends ResponseStrings {
         `${EmojiHelper.getRandomAmeEmoji()} | score de comparación de ${DroidHelper.userToString(user)}:\n-# ${client.config.emojis.warn} la API pública de osu!droid no retorna mods! habrán errores!`,
     },
     error: 'ocurrió un error al ejecutar este comando... <@:596481414426525696:> revisa la consola!!!!',
+    config: {
+      prefix_set: (prefix: string) => `listo!! el prefijo de los comandos de mensaje ahora es \`${prefix}\`!!`,
+    },
     tracking: {
       channel_set: (channel: TextChannel, has_perms: boolean) =>
         `listo!! el canal de tracking de scores ahora es ${channel}.${!has_perms ? ' **pero... no tengo permisos para enviar nada ahí!!1!1💢💢💢**' : ''}`,

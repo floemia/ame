@@ -16,7 +16,7 @@ export abstract class CooldownHandler {
    * Adds a command to the cooldowns collection.
    * @param command The `Command` to add.
    */
-  static addCommand(command: Command): void {
+  static addCommand(command: Command<any, any[]>): void {
     if (!this.cooldowns.has(command.data.name)) this.cooldowns.set(command.data.name, []);
   }
 
@@ -26,7 +26,7 @@ export abstract class CooldownHandler {
    * @param user The user to calculate the time left for.
    * @returns The time left in seconds.
    */
-  static timeLeft(command: Command, user: User): number {
+  static timeLeft(command: Command<any, any[]>, user: User): number {
     const now = new Date();
     const cd_list = this.cooldowns.get(command.data.name)!;
     const user_cd = cd_list.find((cd) => cd.user_id === user.id);

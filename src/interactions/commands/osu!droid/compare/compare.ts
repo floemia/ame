@@ -6,12 +6,12 @@ import { ScoreContainerBuilder } from '@utils/builders';
 import { CacheManager } from '@utils/managers';
 
 export const run: SlashCommand['run'] = async (client, interaction, strings) => {
-  const user = (await DroidHelper.getUser(interaction))!;
+  const user = await DroidHelper.getUser(interaction);
   const map = (await DroidHelper.getBeatmap(interaction))!;
 
   let bestpp = interaction.options.getBoolean('bestpp') || false;
   if (map.approved != 1) bestpp = false;
-  const scores = await user?.getScores({ beatmapOrHash: map, order: bestpp ? 'pp' : 'score' });
+  const scores = await user.getScores({ beatmapOrHash: map, order: bestpp ? 'pp' : 'score' });
   if (!scores || scores.length == 0) throw new AmeError(strings.commands.compare.no_score);
   const score = scores[0];
 

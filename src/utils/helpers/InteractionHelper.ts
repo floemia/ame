@@ -1,6 +1,5 @@
 import { client } from '@base';
 import {
-  ChatInputCommandInteraction,
   CommandInteraction,
   ContainerBuilder,
   InteractionEditReplyOptions,
@@ -84,10 +83,10 @@ export abstract class InteractionHelper {
 
   /**
    * Replies to an interaction with an error message.
-   * @param interaction The `ChatInputCommandInteraction`.
+   * @param interaction The `CommandInteraction`.
    * @param message The message to show.
    */
-  static async replyError(interaction: ChatInputCommandInteraction, message: string) {
+  static async replyError(interaction: CommandInteraction, message: string) {
     const container = this.createContainer({
       type: 'error',
       title: `${client.config.emojis.error}  error!!!`,
@@ -151,9 +150,17 @@ export abstract class InteractionHelper {
     });
   }
 
-  static addSignatureToContainer(container: ContainerBuilder): ContainerBuilder {
+  /**
+   * Adds ame signature as a footer of a container
+   * @param container The `ConatinerBuilder`
+   * @param next Text to add after the signature.
+   * @returns
+   */
+  static addSignatureToContainer(container: ContainerBuilder, next?: string): ContainerBuilder {
     return container
       .addSeparatorComponents((s) => s)
-      .addTextDisplayComponents((s) => s.setContent(`-# ${client.config.emojis.ame[0]}  **💙Ame💙・**@raincandy_U`));
+      .addTextDisplayComponents((s) =>
+        s.setContent(`-# ${client.config.emojis.ame[0]}  **💙Ame💙・**@raincandy_U${next ? `・${next}` : ''}`),
+      );
   }
 }

@@ -5,8 +5,8 @@ import { DroidHelper, InteractionHelper } from '@utils/helpers';
 import { SlashCommandBuilder } from 'discord.js';
 
 export const run: SlashCommand['run'] = async (client, interaction, strings) => {
-  const user = (await DroidHelper.getUser(interaction))!;
-  const scores = user.scores.best.slice(0, 50);
+  const user = await DroidHelper.getUser(interaction);
+  const scores = user.scores.best;
   if (scores.length == 0) throw new AmeError(strings.no_scores);
   await interaction.deferReply();
 

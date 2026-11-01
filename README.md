@@ -1,0 +1,71 @@
+### config.json
+
+```json
+{
+  "developer": "596481414426525696",
+  "debug": true,
+  "test_guild": "976981749848473610",
+  "tracking": {
+    "enabled": false,
+    "interval": 20
+  },
+  "cooldown": {
+    "commands": 5,
+    "avatar": 1800,
+    "activity": 120
+  },
+  "colors": {
+    "connection": "#E8BAFF",
+    "ok": "#FFB3BA",
+    "debug": "#F2BBC9",
+    "default": "#A9D979",
+    "error": "#FF6961",
+    "tracking": "#AD82D9",
+    "process": "#BAE1FF",
+    "warn": "#FFDFBA"
+  },
+  "emojis": {
+    "ame": [
+      "<:ame:1562894060916707481>",
+      "<:ame1:1565483823464972500>",
+      "<:ame2:1565484126025420830>",
+      "<:ame3:1565485495545368717>"
+    ],
+    "ok": "<:AmeOK:1562904707289186396>",
+    "warn": "<:AmeWarn:1562876739871313930>",
+    "error": "<:AmeError:1562900717533135061>",
+    "unknown_flag": "<:unknown_flag:1562571578452082780>",
+    "droid": "<:droid_simple:1021473577951821824>",
+    "status": {
+      "ranked": "<:ranked:1369494433288032426>",
+      "qualified": "<:qf_aprv:1369496051467288656>",
+      "graveyard": "<:graveyard:1369498405440589895>",
+      "loved": ":pink_heart:"
+    },
+    "attributes": {
+      "AR": "<:AR:1563005635044446238>",
+      "HP": "<:HP:1563005891891171368>",
+      "CS": "<:CS:1563005700949676042>",
+      "OD": "<:OD:1563005680749772870>",
+      "length": "<:length:1563010304999424042>",
+      "BPM": "<:BPM:1563010282371162222>"
+    },
+    "rank": {
+      "XH": "<:rankingXH:1563331553273192640>",
+      "X": "<:rankingX:1563332064936202380>",
+      "SH": "<:rankingSH:1563331516665172038>",
+      "S": "<:rankingS:1563331920878895104>",
+      "A": "<:rankingA:1563332324660084826>",
+      "B": "<:rankingB:1563332571561988166>",
+      "C": "<:rankingC:1563332788294254723>",
+      "D": "<:rankingD:1563332988048113734>"
+    },
+    "arrow": {
+      "leftall": "<:lastarrowleft:968284085363568721>",
+      "left": "<:arrowleft:968284085472616469>",
+      "right": "<:arrowright:968284085342584912>",
+      "rightall": "<:lastarrowright:968284085652963368>"
+    }
+  }
+}
+```
