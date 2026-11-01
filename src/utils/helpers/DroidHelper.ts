@@ -307,6 +307,10 @@ export abstract class DroidHelper {
   static getBeatmapIDFromMessage(message: Message): number | null {
     const candidates = [message.content];
     const containers = message.components.filter((c) => c.data.type == ComponentType.Container);
+    if (message.reference && message.messageSnapshots.size > 0) {
+      const forwarded_msg = message.messageSnapshots.first();
+      return this.getBeatmapIDFromMessage(forwarded_msg as any);
+    }
     if (containers.length > 0) {
       const container = containers[0].toJSON() as APIContainerComponent;
       const text = JSON.stringify(container.components);
