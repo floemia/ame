@@ -1,4 +1,5 @@
 import { AmeError } from '@core';
+import { DroidUser } from '@floemia/osu-droid-tools';
 import { MessageCommand } from '@structures/core';
 import { ScoreContainerBuilder } from '@utils/builders';
 import { DroidHelper } from '@utils/helpers';
@@ -11,10 +12,13 @@ export const data: MessageCommand['data'] = {
 };
 
 export const run: MessageCommand['run'] = async (client, message, strings, args) => {
-  const user = await DroidHelper.getUser(args[0] || message.author);
-  if (!user) throw new AmeError(strings.no_link);
-
   let beatmap: string | number | null = null;
+  let user: DroidUser | null = null;
+  if (args[0] && args[0].startsWith('https://osu.ppy.sh')) {
+    user = await DroidHelper.getUser(args[1] || message.author);
+  } else user = await DroidHelper.getUser(args[0] || message.author);
+  if (!user) return;
+  beatmap = DroidHelper.getBeatmapIDFromMessage(message);
 
   if (message.reference?.messageId) {
     const replied_message = await message.fetchReference().catch(() => undefined);
