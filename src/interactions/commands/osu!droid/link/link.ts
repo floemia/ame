@@ -4,6 +4,8 @@ import { DatabaseManager } from '@utils/managers';
 import { SlashCommandBuilder } from 'discord.js';
 
 export const run: SlashCommand['run'] = async (client, interaction, strings) => {
+  await interaction.deferReply();
+
   const uid = interaction.options.getInteger('uid');
   const username = interaction.options.getString('username');
   if (!uid && !username) return await InteractionHelper.replyError(interaction, strings.no_params);

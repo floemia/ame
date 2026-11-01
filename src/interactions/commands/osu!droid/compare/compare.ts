@@ -6,6 +6,8 @@ import { ScoreContainerBuilder } from '@utils/builders';
 import { CacheManager } from '@utils/managers';
 
 export const run: SlashCommand['run'] = async (client, interaction, strings) => {
+  await interaction.deferReply();
+
   const user = await DroidHelper.getUser(interaction);
   const map = (await DroidHelper.getBeatmap(interaction))!;
 

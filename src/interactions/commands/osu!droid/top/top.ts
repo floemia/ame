@@ -5,10 +5,10 @@ import { DroidHelper, InteractionHelper } from '@utils/helpers';
 import { SlashCommandBuilder } from 'discord.js';
 
 export const run: SlashCommand['run'] = async (client, interaction, strings) => {
+  await interaction.deferReply();
   const user = await DroidHelper.getUser(interaction);
   const scores = user.scores.best;
   if (scores.length == 0) throw new AmeError(strings.no_scores);
-  await interaction.deferReply();
 
   const builder = (await new ScoreListContainerBuilder().setPlayer(user)).setScores(scores);
   const page = Math.min(Math.max((interaction.options.getInteger('page') || 1) - 1, 0), builder.pages - 1);

@@ -12,6 +12,7 @@ export const run: SlashCommand['run'] = async (client, interaction, strings) => 
   const scores = user.scores.recent.slice(0, 50);
   if (!scores.length) throw new AmeError(strings.no_scores);
   if (index > scores.length) index = scores.length;
+  await interaction.deferReply();
 
   const build_page = async (page: number) => {
     const score = scores[page];

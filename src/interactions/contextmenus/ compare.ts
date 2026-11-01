@@ -4,6 +4,7 @@ import { DroidHelper, InteractionHelper } from '@utils/helpers';
 import { ContextMenuCommandBuilder, ApplicationCommandType } from 'discord.js';
 
 export const run: ContextMenuCommand['run'] = async (client, interaction, strings) => {
+  await interaction.deferReply();
   const message = interaction.targetMessage;
   const beatmap = await DroidHelper.getBeatmapFromMessage(message);
   if (!beatmap) throw new AmeError(strings.commands.compare.no_map);
