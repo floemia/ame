@@ -1,6 +1,6 @@
 import { client } from '@base';
 import { DroidScore, DroidUser } from '@floemia/osu-droid-tools';
-import { ColorHelper, DroidHelper, TimeHelper } from '@utils/helpers';
+import { ColorHelper, DroidHelper, InteractionHelper, TimeHelper } from '@utils/helpers';
 import { ContainerBuilder, APIContainerComponent } from 'discord.js';
 import { ModUtil, Modes } from '@rian8337/osu-base';
 import { CacheManager } from '@utils/managers';
@@ -50,7 +50,7 @@ export class ScoreContainerBuilder extends ContainerBuilder {
     const fulltitle =
       `${status}  ` +
       (map
-        ? `[${map.artist} - ${map.title} [${map.version}]](${map.beatmapLink})・${diff.osu?.starRating.toLocaleString('en-US', { maximumFractionDigits: 2 })} ⭐`
+        ? `[${map.artist} - ${map.title} [${map.version}]](${map.beatmapLink})${score.mods.size > 0 ? ` +${score.mods.toString()}` : ''}・${diff.osu?.starRating.toLocaleString('en-US', { maximumFractionDigits: 2 })} ⭐`
         : score.filename);
 
     const dpp = score.pp
@@ -71,17 +71,17 @@ export class ScoreContainerBuilder extends ContainerBuilder {
     let fc_pp_str = '';
     if (map && !score.isFC()) {
       const score_fc = score.toFC();
-      const perf = {
+      const perf_fc = {
         osu: await score_fc.calculatePerformance('osu'),
         droid: await score_fc.calculatePerformance(),
       };
       const acc_fc =
-        (score.accuracy.value * 100).toLocaleString('en-US', {
+        (score_fc.accuracy.value * 100).toLocaleString('en-US', {
           maximumFractionDigits: 2,
           minimumFractionDigits: 2,
         }) + '%';
 
-      fc_pp_str += `\n-# ${perf.droid?.total.toLocaleString('en-US', { maximumFractionDigits: 2 })}dpp・${perf.osu?.total.toLocaleString('en-US', { maximumFractionDigits: 2 })}pp ➜ FC ${acc_fc}`;
+      fc_pp_str += `\n-# ${perf_fc.droid?.total.toLocaleString('en-US', { maximumFractionDigits: 2 })}dpp・${perf_fc.osu?.total.toLocaleString('en-US', { maximumFractionDigits: 2 })}pp ➜ FC ${acc_fc}`;
     }
     const score_str = new Intl.NumberFormat('en-US', {
       notation: 'compact',
@@ -97,9 +97,7 @@ export class ScoreContainerBuilder extends ContainerBuilder {
     let color = 0xdedede;
     if (map) {
       try {
-        color = await ColorHelper.getDominantColor(
-          `https://assets.ppy.sh/beatmaps/${map?.beatmapSetId}/covers/list.jpg`,
-        );
+        color = await ColorHelper.getAccentColor(`https://assets.ppy.sh/beatmaps/${map?.beatmapSetId}/covers/list.jpg`);
       } catch {}
       ModUtil.applyModsToBeatmapDifficulty(score.beatmap!.difficulty, Modes.Osu, score.mods, true);
       const map_length = TimeHelper.secondsToMMSS(map.totalLength / score.getFinalSpeed());
@@ -119,15 +117,9 @@ export class ScoreContainerBuilder extends ContainerBuilder {
         ),
     );
 
-    container
-      .addSeparatorComponents((s) => s)
-      .addTextDisplayComponents((s) =>
-        s.setContent(
-          `-# ${client.config.emojis.ame}  **💙Ame💙・**@raincandy_U・<t:${score.played_at.getTime() / 1000}:R>`,
-        ),
-      );
-
+    InteractionHelper.addSignatureToContainer(container);
     CacheManager.storeScoreContainer(score, container);
+
     return container;
   }
 }

@@ -3,3 +3,5 @@ dist/
 .env
 .vscode/
 db/
+ame.db
+ame.db-*

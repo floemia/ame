@@ -1,6 +1,6 @@
 import { Client, ClientEvents, Collection } from 'discord.js';
-import { SlashCommand } from '@structures/core';
-import { EventHandler, SlashCommandHandler } from '@handlers';
+import { ContextMenuCommand, SlashCommand } from '@structures/core';
+import { EventHandler, InteractionHandler } from '@handlers';
 import config_file from '@config';
 import { LogHelper, TimeHelper } from '@utils/helpers';
 import { OsuAPIRequestBuilder } from '@rian8337/osu-base';
@@ -23,6 +23,11 @@ export class AmeClient extends Client {
    * `Collection` of developer slash commands.
    */
   dev_commands = new Collection<string, SlashCommand>();
+
+  /**
+   * `Collection` of context menu commands.
+   */
+  context_commands = new Collection<string, ContextMenuCommand>();
 
   /**
    * `Collection` of client events.
@@ -54,6 +59,6 @@ export class AmeClient extends Client {
     });
     this.login(process.env.TOKEN);
     EventHandler.registerEvents();
-    SlashCommandHandler.registerCommands();
+    InteractionHandler.registerInteractions();
   }
 }

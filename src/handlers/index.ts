@@ -1,3 +1,3 @@
 export * from './EventHandler';
-export * from './SlashCommandHandler';
+export * from './InteractionHandler';
 export * from './CooldownHandler';

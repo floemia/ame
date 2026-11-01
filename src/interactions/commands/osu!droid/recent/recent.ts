@@ -1,24 +1,39 @@
+import { AmeError } from '@core';
 import { SlashCommand } from '@structures/core';
-import { SlashCommandBuilder } from 'discord.js';
-import { DroidHelper } from '@utils/helpers';
-import { ScoreContainerBuilder } from '@utils/builders';
+import { SlashCommandBuilder, TextDisplayBuilder } from 'discord.js';
+import { DroidHelper, InteractionHelper } from '@utils/helpers';
+import { PaginationRowBuilder, ScoreContainerBuilder } from '@utils/builders';
 import { CacheManager } from '@utils/managers';
 
 export const run: SlashCommand['run'] = async (client, interaction, strings) => {
   const user = await DroidHelper.getUser(interaction);
   if (!user) return;
-  console.log('A');
+  let index = interaction.options.getInteger('index') || 1;
+  const scores = user.scores.recent.slice(0, 50);
+  if (!scores.length) throw new AmeError(strings.no_scores);
+  if (index > scores.length) index = scores.length;
 
-  const index = interaction.options.getInteger('index') || 1;
+  const build_page = async (page: number) => {
+    const score = scores[page];
+    const text = new TextDisplayBuilder().setContent(strings.commands.recent.success(user, page + 1));
+    const container = await new ScoreContainerBuilder().setPlayer(user).setScore(score);
+    if (score.beatmap) CacheManager.storeChannelBeatmap(interaction.channel!, score.hash);
+    return [text, container] as const;
+  };
 
-  const container = await new ScoreContainerBuilder().setPlayer(user).setScore(user.scores.recent[index - 1]);
-  await interaction.editReply({
-    content: '',
-    components: [container],
+  const row = new PaginationRowBuilder(interaction, async (button, page) => {
+    await button.update({
+      components: [...(await build_page(page)), row],
+      flags: 'IsComponentsV2',
+    });
+  })
+    .setLength(scores.length)
+    .setIndex(index - 1);
+
+  await InteractionHelper.reply(interaction, {
+    components: [...(await build_page(index - 1)), row],
     flags: 'IsComponentsV2',
   });
-  if (user.scores.recent[index].beatmap)
-    CacheManager.storeChannelBeatmap(interaction.channel!, user.scores.recent[index].hash);
 };
 
 export const data: SlashCommand['data'] = new SlashCommandBuilder()
@@ -29,7 +44,7 @@ export const data: SlashCommand['data'] = new SlashCommandBuilder()
     option
       .setName('user')
       .setDescription('the Discord user linked to the osu!droid account.')
-      .setDescriptionLocalization('es-ES', 'el usuario de Discord vinculado a la cuenta de osu!droid.'),
+      .setDescriptionLocalization('es-ES', 'el usuario de Discord vinculado al perfil de osu!droid.'),
   )
   .addIntegerOption((option) =>
     option

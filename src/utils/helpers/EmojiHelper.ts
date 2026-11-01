@@ -16,4 +16,14 @@ export abstract class EmojiHelper {
     const id = match[1];
     return client.emojis.cache.get(id);
   }
+
+  /**
+   * Returns a random Ame-chan emoji.
+   */
+  static getRandomAmeEmoji(): GuildEmoji {
+    const ame = client.config.emojis.ame;
+    const length = ame.length;
+    const random = Math.floor(Math.random() * (length - 1));
+    return this.toEmoji(ame[random])!;
+  }
 }

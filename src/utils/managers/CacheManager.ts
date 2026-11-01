@@ -1,3 +1,4 @@
+import { client } from '@base';
 import { DroidScore } from '@floemia/osu-droid-tools';
 import { ScoreContainerBuilder } from '@utils/builders';
 import { TextBasedChannel } from 'discord.js';
@@ -6,7 +7,7 @@ export abstract class CacheManager {
   /**
    * Contains fully processed score containers.
    */
-  private static score_containers = new Map<number, ScoreContainerBuilder>();
+  private static score_containers = new Map<string, ScoreContainerBuilder>();
 
   /**
    * Contains the latest mentioned beatmap in a channel.
@@ -19,7 +20,7 @@ export abstract class CacheManager {
    * @param container The `ScoreContainerBuilder` of the score.
    */
   static storeScoreContainer(score: DroidScore, container: ScoreContainerBuilder): void {
-    this.score_containers.set(score.id, container);
+    this.score_containers.set(`${score.id}-${score.played_at}`, container);
   }
 
   /**
@@ -27,7 +28,7 @@ export abstract class CacheManager {
    * @param score The `DroidScore` this container belongs to.
    */
   static getScoreContainer(score: DroidScore): ScoreContainerBuilder | undefined {
-    return this.score_containers.get(score.id);
+    return this.score_containers.get(`${score.id}-${score.played_at}`);
   }
 
   /**
@@ -37,6 +38,11 @@ export abstract class CacheManager {
    */
   static storeChannelBeatmap(channel: TextBasedChannel, idOrHash: string | number): void {
     this.channel_beatmap.set(channel.id, idOrHash);
+    if (client.config.debug)
+      client.log({
+        prefix: 'DEBUG',
+        message: `beatmap for channel ${channel.id} is now ${idOrHash}`,
+      });
   }
 
   /**

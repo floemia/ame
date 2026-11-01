@@ -1,5 +1,7 @@
+import { client } from '@base';
 import { DroidUser } from '@floemia/osu-droid-tools';
-import { DroidHelper } from '@utils/helpers';
+import { DroidHelper, EmojiHelper } from '@utils/helpers';
+import { TextChannel } from 'discord.js';
 
 export class ResponseStrings {
   done = 'done!!';
@@ -12,18 +14,44 @@ export class ResponseStrings {
     return `stop!!!!!!!!! you have a cooldown of  ${str}!!!`;
   }
   no_params = `you didnt give me any parameter!!!`;
+  no_perms = `you dont have perms to do that bro smh💢💢💢💢`;
+  no_scores = 'that user doesnt have any scores... 🥺';
 
   commands = {
+    ame: {
+      tracking: {
+        started: 'done!! the score tracking system has been started!',
+        already_running: 'the score tracking system is already running!!💢💢',
+        stopped: 'the score tracking system has been stopped...🥺',
+        updating: 'updating all of the score tracking system entries... check logs',
+        status: (running: boolean, users: number) =>
+          `the score tracking system is currently ${running ? 'running' : 'stopped'} with ${users} tracked user(s)!`,
+      },
+    },
     link: {
       success(user: DroidUser) {
         const str = DroidHelper.userToString(user);
         return `your Discord was successfully linked to  ${str}.`;
       },
     },
+    recent: {
+      success: (user: DroidUser, index?: number) =>
+        `${EmojiHelper.getRandomAmeEmoji()} | recent score${index ? ` #${index}` : ''} of  ${DroidHelper.userToString(user)}:`,
+    },
     compare: {
       no_cache: 'there isnt any beatmap being talked about here!!!💢',
       no_map: 'i couldnt find that beatmap... 🥺',
       no_score: 'you dont have any scores in that beatmap!! smh💢',
+      success: (user: DroidUser) =>
+        `${EmojiHelper.getRandomAmeEmoji()} | comparison score from  ${DroidHelper.userToString(user)}:\n-# ${client.config.emojis.warn} the osu!droid public API currently doesn't return mods! expect errors!`,
+    },
+    tracking: {
+      channel_set: (channel: TextChannel, has_perms: boolean) =>
+        `done!! score tracking channel was set to ${channel}.${!has_perms ? ' **but... i dont have permission to send messages there!!1!1💢💢💢**' : ''}`,
+      status_set: (status: boolean) => `done!! ive ${status ? 'enabled' : 'disabled'} the score tracking system!`,
+      user_add: (user: DroidUser) => `ive added  ${DroidHelper.userToString(user)}  to the score tracking system!`,
+      user_delete: (user: DroidUser) =>
+        `ive removed  ${DroidHelper.userToString(user)}  from the score tracking system...🥺`,
     },
   };
 }

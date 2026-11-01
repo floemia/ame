@@ -65,6 +65,8 @@ export abstract class LogHelper {
       prefix += `${event}`;
     }
 
+    if (prefix == 'DEBUG') params.color = client.config.colors.debug;
+
     const c = chalk.hex(isError ? client.config.colors.error : (params.color ?? client.config.colors.default));
     message.split('\n').forEach((line) => {
       if (line.trim()) {

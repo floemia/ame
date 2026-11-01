@@ -1,23 +1,25 @@
 import { SlashCommand } from '@structures/core';
-import { SlashCommandBuilder } from 'discord.js';
-import { DroidHelper } from '@utils/helpers';
-import { AmeError } from '@structures/core/AmeError';
+import { SlashCommandBuilder, TextDisplayBuilder } from 'discord.js';
+import { DroidHelper, InteractionHelper } from '@utils/helpers';
+import { AmeError } from '@core';
 import { ScoreContainerBuilder } from '@utils/builders';
 import { CacheManager } from '@utils/managers';
 
 export const run: SlashCommand['run'] = async (client, interaction, strings) => {
   const user = (await DroidHelper.getUser(interaction))!;
   const map = (await DroidHelper.getBeatmap(interaction))!;
+
   let bestpp = interaction.options.getBoolean('bestpp') || false;
   if (map.approved != 1) bestpp = false;
   const scores = await user?.getScores({ beatmapOrHash: map, order: bestpp ? 'pp' : 'score' });
   if (!scores || scores.length == 0) throw new AmeError(strings.commands.compare.no_score);
   const score = scores[0];
 
+  const text = new TextDisplayBuilder().setContent(strings.commands.compare.success(user));
   const container = await new ScoreContainerBuilder().setPlayer(user).setScore(score);
-  await interaction.editReply({
-    content: '',
-    components: [container],
+
+  await InteractionHelper.reply(interaction, {
+    components: [text, container],
     flags: 'IsComponentsV2',
   });
 
@@ -44,7 +46,7 @@ export const data: SlashCommand['data'] = new SlashCommandBuilder()
     option
       .setName('user')
       .setDescription('the Discord user linked to the osu!droid account.')
-      .setDescriptionLocalization('es-ES', 'el usuario de Discord vinculado a la cuenta de osu!droid.'),
+      .setDescriptionLocalization('es-ES', 'el usuario de Discord vinculado al perfil de osu!droid.'),
   )
   .addIntegerOption((option) =>
     option

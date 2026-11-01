@@ -14,7 +14,7 @@ export const run: SlashCommand['run'] = async (client, interaction, strings) => 
   DatabaseManager.linkDroidUser(interaction.user, user);
   const container = DroidHelper.createLinkContainer(user, strings);
 
-  await interaction.editReply({
+  await InteractionHelper.reply(interaction, {
     components: [container],
     flags: 'IsComponentsV2',
   });

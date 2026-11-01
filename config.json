@@ -1,7 +1,8 @@
 {
   "cooldown": {
     "commands": 5,
-    "tracking": 15
+    "avatar": 1800,
+    "activity": 120
   },
   "colors": {
     "connection": "#E8BAFF",
@@ -14,7 +15,12 @@
     "warn": "#FFDFBA"
   },
   "emojis": {
-    "ame": "<:ame:1562894060916707481>",
+    "ame": [
+      "<:ame:1562894060916707481>",
+      "<:ame1:1565483823464972500>",
+      "<:ame2:1565484126025420830>",
+      "<:ame3:1565485495545368717>"
+    ],
     "ok": "<:AmeOK:1562904707289186396>",
     "warn": "<:AmeWarn:1562876739871313930>",
     "error": "<:AmeError:1562900717533135061>",
@@ -43,9 +49,19 @@
       "B": "<:rankingB:1563332571561988166>",
       "C": "<:rankingC:1563332788294254723>",
       "D": "<:rankingD:1563332988048113734>"
+    },
+    "arrow": {
+      "leftall": "<:lastarrowleft:968284085363568721>",
+      "left": "<:arrowleft:968284085472616469>",
+      "right": "<:arrowright:968284085342584912>",
+      "rightall": "<:lastarrowright:968284085652963368>"
     }
   },
-  "developer": 596481414426525696,
-  "debug": false,
-  "test_guild": 976981749848473610
+  "developer": "596481414426525696",
+  "debug": true,
+  "test_guild": "976981749848473610",
+  "tracking": {
+    "enabled": false,
+    "interval": 20
+  }
 }

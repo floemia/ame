@@ -1,12 +1,19 @@
 import { client } from '@base';
-import { DroidScore, DroidUser } from '@floemia/osu-droid-tools';
-import { ResponseStrings } from '@localization/index';
+import { AmeError } from '@core';
+import { ResponseStrings } from '@localization';
 import { CacheManager, DatabaseManager } from '@utils/managers';
-import { ChatInputCommandInteraction, ContainerBuilder, User } from 'discord.js';
-import { ColorHelper } from './ColorHelper';
+import { ColorHelper, InteractionHelper, LocalizationHelper } from '@utils/helpers';
+import {
+  APIContainerComponent,
+  ChatInputCommandInteraction,
+  ComponentType,
+  ContainerBuilder,
+  Message,
+  User,
+} from 'discord.js';
 import { RankedStatus, MapInfo, BeatmapDecoder, OsuAPIRequestBuilder, OsuAPIResponse, Modes } from '@rian8337/osu-base';
-import { LocalizationHelper } from './LocalizationHelper';
-import { AmeError } from '@structures/core/AmeError';
+import { DroidScore, DroidUser } from '@floemia/osu-droid-tools';
+
 /**
  * Helps with osu!droid related operations.
  */
@@ -131,10 +138,8 @@ export abstract class DroidHelper {
             t.setContent(`### ${client.config.emojis.ok}  ${strings.done}\n${strings.commands.link.success(user)}`),
           )
           .setThumbnailAccessory((t) => t.setURL(user.avatar_url)),
-      )
-      .addSeparatorComponents((s) => s)
-      .addTextDisplayComponents((s) => s.setContent(`-# ${client.config.emojis.ame}  **💙Ame💙・**@raincandy_U`));
-    return container;
+      );
+    return InteractionHelper.addSignatureToContainer(container);
   }
 
   /**
@@ -211,7 +216,9 @@ export abstract class DroidHelper {
    * Requests the .osu file from a beatmap and returns a `Beatmap` instance.
    * @param input A `DroidScore`, the ID or the MD5 hash of a beatmap.
    */
-  static async getBeatmap(input: DroidScore | ChatInputCommandInteraction | string): Promise<MapInfo<true> | null> {
+  static async getBeatmap(
+    input: DroidScore | ChatInputCommandInteraction | string | number,
+  ): Promise<MapInfo<true> | null> {
     let hash;
     let hashOrID: string | number = '';
     if (input instanceof ChatInputCommandInteraction) {
@@ -228,13 +235,15 @@ export abstract class DroidHelper {
     }
 
     const isDroidScore = input instanceof DroidScore;
+
     if (isDroidScore) {
       hash = (input as DroidScore).hash;
       hashOrID = hash;
     }
+
     if (!hashOrID) {
-      if (typeof input == 'string') {
-        const id = DroidHelper.getBeatmapId(input);
+      if (typeof input == 'string' || 'number') {
+        const id = typeof input == 'string' ? DroidHelper.getBeatmapId(input) : (input as number);
         if (!id) return null;
         hashOrID = id;
       }
@@ -259,10 +268,8 @@ export abstract class DroidHelper {
 
     const db_beatmap = DatabaseManager.getBeatmap(isDroidScore ? input.hash : mapinfo.beatmap_id);
     if (db_beatmap) {
-      console.log('hola');
       const decoded_beatmap = new BeatmapDecoder().decode(db_beatmap, Modes.Osu).result;
       const map_info = MapInfo.from(mapinfo, decoded_beatmap);
-      // console.log(map_info);
       if (isDroidScore) {
         input.map_info = map_info;
         input.beatmap = decoded_beatmap;
@@ -270,6 +277,11 @@ export abstract class DroidHelper {
       return map_info;
     }
 
+    if (client.config.debug)
+      client.log({
+        prefix: 'DEBUG',
+        message: `had to get beatmap ${mapinfo.beatmap_id} from osu.ppy.sh/osu/`,
+      });
     let beatmap_file;
     const url = `https://osu.ppy.sh/osu/${mapinfo.beatmap_id.toString()}`;
     try {
@@ -295,5 +307,50 @@ export abstract class DroidHelper {
 
     DatabaseManager.storeBeatmap(hash, decoded_beatmap.metadata.beatmapId!, beatmap_file);
     return fullmap;
+  }
+
+  /**
+   * Returns the ID of a beatmap from a URL present in the message.
+   * @param message The `Message` to analyze.
+   */
+  static getBeatmapIDFromMessage(message: Message): number | null {
+    const candidates = [message.content];
+    const containers = message.components.filter((c) => c.data.type == ComponentType.Container);
+    if (containers.length > 0) {
+      const container = containers[0].toJSON() as APIContainerComponent;
+      const text = JSON.stringify(container.components);
+      candidates.push(text);
+    } else if (message.embeds.length > 0) {
+      const embed = message.embeds[0];
+      candidates.push(embed.author ? embed.author.url || '' : '');
+      candidates.push(embed.url || '');
+    }
+    if (candidates.length == 0) return null;
+    let id: number | null = null;
+    let i = 0;
+    for (const entry of candidates) {
+      const match = entry.match(/https?:\/\/(?:www\.)?osu\.ppy\.sh\/[^\s)]+/g);
+      if (!match) continue;
+      id = DroidHelper.getBeatmapId(match[0]);
+      if (id) break;
+      i++;
+    }
+    return id;
+  }
+
+  /**
+   * Returns a beatmap from a URL present in the message.
+   * @param message The `Message` to analyze.
+   */
+  static async getBeatmapFromMessage(message: Message): Promise<MapInfo<true> | null> {
+    const id = this.getBeatmapIDFromMessage(message);
+    if (id) return this.getBeatmap(id);
+    return null;
+  }
+
+  static async compareFromUID(uid: number, beatmap: MapInfo, bestpp: boolean = true): Promise<DroidScore | undefined> {
+    const scores = await DroidScore.search({ user: uid, beatmapOrHash: beatmap, order: bestpp ? 'pp' : 'score' });
+    if (scores.length == 0) return undefined;
+    return scores[0];
   }
 }

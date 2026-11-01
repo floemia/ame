@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 
-const root = path.join(__dirname, '../');
+const root = path.join(__dirname, '../../../');
 
 /**
  * Manages the file structure of the client.
@@ -29,12 +29,19 @@ export abstract class FileManager {
    */
   static getClientAvatars(): string[] {
     const fileList = [];
-    const dir = path.join(root, './assets/avatars');
+    const dir = this.getAvatarDirPath();
     const entries = fs.readdirSync(dir, { withFileTypes: true });
     for (const entry of entries) {
       const fullPath = path.join(dir, entry.name);
       fileList.push(fullPath);
     }
     return fileList;
+  }
+
+  /**
+   * Returns the avatars directory path.
+   */
+  static getAvatarDirPath(): string {
+    return path.join(root, './assets/avatars');
   }
 }
