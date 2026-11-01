@@ -2,6 +2,7 @@ import { SlashCommand } from '@structures/core';
 import { AmeError } from '@core';
 import { InteractionContextType, SlashCommandBuilder } from 'discord.js';
 import { start, status, stop, update } from './subcommandgroups/tracking';
+import { say } from './subcommandgroups/say';
 
 export const developer: SlashCommand['developer'] = true;
 
@@ -29,6 +30,10 @@ export const run: SlashCommand['run'] = async (client, interaction, strings) => 
       break;
     }
   }
+  switch (subcommand) {
+    case 'say':
+      say(client, interaction, strings);
+  }
 };
 
 export const data: SlashCommand['data'] = new SlashCommandBuilder()
@@ -43,6 +48,13 @@ export const data: SlashCommand['data'] = new SlashCommandBuilder()
       .addSubcommand((sub) => sub.setName('stop').setDescription('stops the score tracking system.'))
       .addSubcommand((sub) => sub.setName('update').setDescription("updates all of the system's entries."))
       .addSubcommand((sub) => sub.setName('status').setDescription('shows the score tracking system status.')),
+  )
+  .addSubcommand((sub) =>
+    sub
+      .setName('say')
+      .setDescription('i will say what you want!')
+      .addStringOption((o) => o.setName('text').setDescription('the message you want me to send!').setRequired(true))
+      .addChannelOption((o) => o.setName('channel').setDescription('the channel you want me to send a message to!')),
   );
 
 export const dirname = __dirname;
