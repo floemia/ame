@@ -1,5 +1,5 @@
 import { client } from '@base';
-import { DroidScore } from '@floemia/osu-droid-tools';
+import { DroidScore, DroidUser } from '@floemia/osu-droid-tools';
 import { ScoreContainerBuilder } from '@utils/builders';
 import { TextBasedChannel } from 'discord.js';
 
@@ -13,6 +13,19 @@ export abstract class CacheManager {
    * Contains the latest mentioned beatmap in a channel.
    */
   private static channel_beatmap = new Map<string, string | number>();
+
+  /**
+   * Contains generated profile cards alongside a snapshot of the user they were generated from.
+   */
+  private static profile_cards = new Map<number, { snapshot: string; buffer: Buffer<ArrayBufferLike> }>();
+
+  /**
+   * Returns a representation of a `DroidUser` used to determine whether their profile card is still up to date.
+   * @param user The `DroidUser`.
+   */
+  private static getProfileSnapshot(user: DroidUser): string {
+    return JSON.stringify(user, (_key, value) => (value instanceof Map ? [...value.entries()] : value));
+  }
 
   /**
    * Stores a fully processed score container.
@@ -29,6 +42,29 @@ export abstract class CacheManager {
    */
   static getScoreContainer(score: DroidScore): ScoreContainerBuilder | undefined {
     return this.score_containers.get(`${score.id}-${score.played_at}`);
+  }
+
+  /**
+   * Stores the generated profile card of a user.
+   * @param user The `DroidUser` the card belongs to.
+   * @param buffer The buffer of the generated profile card.
+   */
+  static storeProfileCard(user: DroidUser, buffer: Buffer<ArrayBufferLike>): void {
+    this.profile_cards.set(user.id, { snapshot: this.getProfileSnapshot(user), buffer });
+  }
+
+  /**
+   * Retrieves the generated profile card of a user if their data hasn't changed.
+   * @param user The `DroidUser` the card belongs to.
+   */
+  static getProfileCard(user: DroidUser): Buffer<ArrayBufferLike> | undefined {
+    const entry = this.profile_cards.get(user.id);
+    if (!entry) return;
+    if (entry.snapshot !== this.getProfileSnapshot(user)) {
+      this.profile_cards.delete(user.id);
+      return;
+    }
+    return entry.buffer;
   }
 
   /**

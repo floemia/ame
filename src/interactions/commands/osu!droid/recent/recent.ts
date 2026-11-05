@@ -6,13 +6,13 @@ import { PaginationRowBuilder, ScoreContainerBuilder } from '@utils/builders';
 import { CacheManager } from '@utils/managers';
 
 export const run: SlashCommand['run'] = async (client, interaction, strings) => {
+  await interaction.deferReply();
   const user = await DroidHelper.getUser(interaction);
   if (!user) return;
   let index = interaction.options.getInteger('index') || 1;
   const scores = user.scores.recent.slice(0, 50);
   if (!scores.length) throw new AmeError(strings.no_scores);
   if (index > scores.length) index = scores.length;
-  await interaction.deferReply();
 
   const build_page = async (page: number) => {
     const score = scores[page];

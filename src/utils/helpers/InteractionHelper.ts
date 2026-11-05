@@ -160,7 +160,9 @@ export abstract class InteractionHelper {
     return container
       .addSeparatorComponents((s) => s)
       .addTextDisplayComponents((s) =>
-        s.setContent(`-# ${client.config.emojis.ame[0]}  **💙Ame💙・**@raincandy_U${next ? `・${next}` : ''}`),
+        s.setContent(
+          `-# ${client.config.emojis.ame[0]}  **💙Ame💙・**[@raincandy_U](https://github.com/floemia/ame)${next ? `・${next}` : ''}`,
+        ),
       );
   }
 }

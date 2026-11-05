@@ -2,13 +2,14 @@
   "name": "ame",
   "author": "floemia",
   "version": "1.0.0",
-  "description": "Discord bot for osu!droid",
+  "description": "discord bot with osu!droid commands!",
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
     "build": "tsc && tsc-alias",
     "start": "node ./dist/index.js",
-    "update-pp": "npm i @rian8337/osu-base@beta @rian8337/osu-difficulty-calculator"
+    "update-pp": "npm i @rian8337/osu-base@beta @rian8337/osu-difficulty-calculator",
+    "update-my": "npm i @floemia/osu-droid-base @floemia/osu-droid-api @floemia/osu-droid-tools @floemia/osu-droid-card"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^9.6.0",
@@ -18,9 +19,10 @@
     "typescript": "^7.0.2"
   },
   "dependencies": {
-    "@floemia/osu-droid-api": "^0.4.7",
-    "@floemia/osu-droid-base": "^0.4.8",
-    "@floemia/osu-droid-tools": "^0.4.8",
+    "@floemia/osu-droid-api": "^1.3.1",
+    "@floemia/osu-droid-base": "^1.3.1",
+    "@floemia/osu-droid-card": "^1.3.1",
+    "@floemia/osu-droid-tools": "^1.3.1",
     "@napi-rs/canvas": "^1.0.13",
     "@rian8337/osu-base": "^4.0.0-beta.103",
     "@rian8337/osu-difficulty-calculator": "^4.0.0-beta.103",

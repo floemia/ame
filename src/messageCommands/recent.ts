@@ -7,7 +7,7 @@ import { TextDisplayBuilder } from 'discord.js';
 
 export const data: MessageCommand['data'] = {
   name: 'recent',
-  aliases: ['recent', 'r'],
+  aliases: ['recent', 'rs', "r",],
 };
 
 export const run: MessageCommand['run'] = async (client, message, strings, args) => {

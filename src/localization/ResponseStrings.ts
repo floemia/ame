@@ -57,5 +57,9 @@ export class ResponseStrings {
       user_delete: (user: DroidUser) =>
         `ive removed  ${DroidHelper.userToString(user)}  from the score tracking system...🥺`,
     },
+    profile: {
+      success: (user: DroidUser) =>
+        `${EmojiHelper.getRandomAmeEmoji()} | osu!droid profile of  ${DroidHelper.userToString(user)}:`,
+    },
   };
 }

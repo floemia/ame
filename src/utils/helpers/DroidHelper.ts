@@ -12,7 +12,15 @@ import {
   Message,
   User,
 } from 'discord.js';
-import { RankedStatus, MapInfo, BeatmapDecoder, OsuAPIRequestBuilder, OsuAPIResponse, Modes } from '@rian8337/osu-base';
+import {
+  RankedStatus,
+  MapInfo,
+  BeatmapDecoder,
+  OsuAPIRequestBuilder,
+  OsuAPIResponse,
+  Modes,
+  ModMap,
+} from '@rian8337/osu-base';
 import { DroidScore, DroidUser } from '@floemia/osu-droid-tools';
 
 /**
@@ -366,5 +374,20 @@ export abstract class DroidHelper {
       }
       return this.resolveUser(input.user);
     }
+  }
+
+  static getModsString(mods: ModMap) {
+    const mod_str = mods.toString();
+    const mod_list = mod_str.split(',');
+    let string = '';
+    for (const mod of mod_list) {
+      if (mod.startsWith('CS')) {
+        const rate = mod
+          .match(/\b(\d+(?:\.\d+)?)(?=x\b)/)![1]
+          .replace('.', '') as keyof typeof client.config.emojis.mods.CS;
+        string += `${client.config.emojis.mods.CS[rate]} `;
+      } else string += `${client.config.emojis.mods[mod as keyof typeof client.config.emojis.mods]} `;
+    }
+    return string;
   }
 }

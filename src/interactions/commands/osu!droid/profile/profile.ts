@@ -1,9 +1,20 @@
 import { SlashCommand } from '@structures/core';
-import { SlashCommandBuilder } from 'discord.js';
+import { ProfileContainerBuilder } from '@utils/builders';
+import { DroidHelper, InteractionHelper } from '@utils/helpers';
+import { SlashCommandBuilder, TextDisplayBuilder } from 'discord.js';
 
-export const disabled: SlashCommand['disabled'] = true;
+export const run: SlashCommand['run'] = async (client, interaction, strings) => {
+  await interaction.deferReply();
+  const user = await DroidHelper.getUser(interaction);
+  const text = new TextDisplayBuilder().setContent(`### ${strings.commands.profile.success(user)}`);
 
-export const run: SlashCommand['run'] = async (client, interaction, strings) => {};
+  const container = await new ProfileContainerBuilder(user).createCard();
+  await InteractionHelper.reply(interaction, {
+    components: [text, container],
+    files: [container.file!],
+    flags: 'IsComponentsV2',
+  });
+};
 
 export const data: SlashCommand['data'] = new SlashCommandBuilder()
   .setName('profile')

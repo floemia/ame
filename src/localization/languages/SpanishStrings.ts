@@ -59,5 +59,9 @@ export class SpanishStrings extends ResponseStrings {
       user_delete: (user: DroidUser) =>
         `quité a  ${DroidHelper.userToString(user)}  del sistema de tracking de scores...🥺`,
     },
+    profile: {
+      success: (user: DroidUser) =>
+        `${EmojiHelper.getRandomAmeEmoji()} | perfil de osu!droid de  ${DroidHelper.userToString(user)}:`,
+    },
   };
 }
