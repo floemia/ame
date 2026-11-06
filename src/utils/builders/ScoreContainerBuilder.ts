@@ -51,7 +51,7 @@ export class ScoreContainerBuilder extends ContainerBuilder {
       `${status}  ` +
       (map
         ? `[${map.artist} - ${map.title} [${map.version}]](${map.beatmapLink})${score.mods.size > 0 ? ` +${score.mods.toString()}` : ''}・${diff.osu?.starRating.toLocaleString('en-US', { maximumFractionDigits: 2 })} ⭐`
-        : score.filename);
+        : `${score.filename}${score.mods.size > 0 ? ` +${score.mods.toString()}` : ''}`);
 
     const dpp = score.pp
       ? `${score.pp.toLocaleString('en-US', { maximumFractionDigits: 2 })}dpp`
