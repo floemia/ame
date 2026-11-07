@@ -12,5 +12,13 @@ export const run: Event<'clientReady'>['run'] = async (client) => {
   });
   ActivityCycle.start();
   AvatarCycle.start();
-  if (client.config.tracking.enabled) TrackingManager.start();
+  if (client.config.tracking.enabled) {
+    TrackingManager.start().catch((error: unknown) => {
+      client.log({
+        type: 'error',
+        prefix: 'TRACKING',
+        message: error instanceof Error ? (error.stack ?? error.message) : String(error),
+      });
+    });
+  }
 };

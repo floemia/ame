@@ -13,6 +13,16 @@ export abstract class TrackingManager {
   static running = false;
 
   /**
+   * Maximum number of retries when fetching a tracked user.
+   */
+  private static readonly max_fetch_retries = 5;
+
+  /**
+   * Delay between tracked user fetch attempts in seconds
+   */
+  private static readonly fetch_retry_delay = 30;
+
+  /**
    * The interval in milliseconds between each step.
    */
   static get interval(): number {
@@ -50,15 +60,42 @@ export abstract class TrackingManager {
   }
 
   private static async getUser(user: TrackingUser): Promise<DroidUser | undefined> {
-    try {
-      return DroidUser.get(user.uid);
-    } catch (error) {
-      this.running = false;
-      client.log({
-        type: 'error',
-        prefix: 'TRACKING',
-        message: `osu!droid score tracking system stopped due to an error.`,
-      });
+    let failed_once = false;
+
+    for (let attempt = 1; ; attempt++) {
+      try {
+        const droid_user = await DroidUser.get(user.uid);
+
+        if (failed_once) {
+          client.log({
+            prefix: 'TRACKING',
+            message: 'osu!droid API is reachable again, resuming tracking...',
+          });
+        }
+
+        return droid_user;
+      } catch (error) {
+        failed_once = true;
+        const reason = error instanceof Error ? error.message : String(error);
+
+        if (attempt > this.max_fetch_retries) {
+          client.log({
+            type: 'error',
+            prefix: 'TRACKING',
+            message: `could not fetch user ${user.uid} after ${this.max_fetch_retries} retries: ${reason}. the tracking system was stopped.`,
+          });
+          this.stop();
+          return;
+        }
+
+        client.log({
+          type: 'warn',
+          prefix: 'TRACKING',
+          message: `could not fetch user ${user.uid} (retry ${attempt}/${this.max_fetch_retries}): ${reason}. retrying in ${this.fetch_retry_delay * attempt}s...`,
+        });
+
+        await new Promise((resolve) => setTimeout(resolve, this.fetch_retry_delay * attempt * 1000));
+      }
     }
   }
 
@@ -89,39 +126,48 @@ export abstract class TrackingManager {
       for (const dbuser of this.entries) {
         if (!this.running || !this) break;
         await new Promise((resolve) => setTimeout(resolve, this.interval * 1000));
-        const user = await this.getUser(dbuser);
-        if (!user) continue;
-        let scores = user.scores.recent
-          .filter((score) => score.played_at.getTime() > dbuser.last_score_date)
-          .slice(0, 3)
-          .reverse();
-        if (!scores.length) continue;
 
-        client.log({ prefix: 'TRACKING', message: `processing ${scores.length} scores from ${user.username}...` });
-        for (const score of scores) {
-          if (!this.running) break;
-          DatabaseManager.updateTrackingUser(user);
-          const container = await new ScoreContainerBuilder().setPlayer(user).setScore(score);
-          client.log({ prefix: 'TRACKING', message: `${score.filename} + ${score.mods.toString() || 'NM'}` });
-          for (const dbguild of dbuser.servers) {
-            const guild = client.guilds.cache.get(dbguild);
-            if (!guild) continue;
+        try {
+          const user = await this.getUser(dbuser);
+          if (!user) continue;
+          let scores = user.scores.recent
+            .filter((score) => score.played_at.getTime() > dbuser.last_score_date)
+            .slice(0, 3)
+            .reverse();
+          if (!scores.length) continue;
 
-            const track_channel = await this.getTrackingChannel(guild);
-            if (!track_channel) continue;
-            const strings = LocalizationHelper.getLocaleStrings(track_channel.guild.preferredLocale);
-            const response = new TextDisplayBuilder().setContent(strings.commands.recent.success(user));
+          client.log({ prefix: 'TRACKING', message: `processing ${scores.length} scores from ${user.username}...` });
+          for (const score of scores) {
+            if (!this.running) break;
+            DatabaseManager.updateTrackingUser(user);
+            const container = await new ScoreContainerBuilder().setPlayer(user).setScore(score);
+            client.log({ prefix: 'TRACKING', message: `${score.filename} + ${score.mods.toString() || 'NM'}` });
+            for (const dbguild of dbuser.servers) {
+              const guild = client.guilds.cache.get(dbguild);
+              if (!guild) continue;
 
-            const bot_member = guild.members.me!;
-            if (!bot_member.permissionsIn(track_channel).has(PermissionFlagsBits.SendMessages)) continue;
-            await track_channel.send({
-              components: [response, container],
-              flags: 'IsComponentsV2',
-            });
+              const track_channel = await this.getTrackingChannel(guild);
+              if (!track_channel) continue;
+              const strings = LocalizationHelper.getLocaleStrings(track_channel.guild.preferredLocale);
+              const response = new TextDisplayBuilder().setContent(strings.commands.recent.success(user));
+
+              const bot_member = guild.members.me!;
+              if (!bot_member.permissionsIn(track_channel).has(PermissionFlagsBits.SendMessages)) continue;
+              await track_channel.send({
+                components: [response, container],
+                flags: 'IsComponentsV2',
+              });
+            }
+
+            // little delay to avoid flooding the channel with ten quintillion containers at once
+            if (scores.length > 1) await new Promise((resolve) => setTimeout(resolve, 5000));
           }
-
-          // little delay to avoid flooding the channel with ten quintillion containers at once
-          if (scores.length > 1) await new Promise((resolve) => setTimeout(resolve, 5000));
+        } catch (error) {
+          client.log({
+            type: 'error',
+            prefix: 'TRACKING',
+            message: `error while processing tracked user ${dbuser.uid}: ${error instanceof Error ? error.message : String(error)}`,
+          });
         }
       }
       this.entries = await this.getUsers();
@@ -137,9 +183,17 @@ export abstract class TrackingManager {
     this.stop();
     client.log({ prefix: 'TRACKING', message: `updating ${this.entries.length} entries...` });
     for (const entry of this.entries) {
-      const user = await this.getUser(entry);
-      if (!user) continue;
-      DatabaseManager.updateTrackingUser(user);
+      try {
+        const user = await this.getUser(entry);
+        if (!user) continue;
+        DatabaseManager.updateTrackingUser(user);
+      } catch (error) {
+        client.log({
+          type: 'error',
+          prefix: 'TRACKING',
+          message: `error while updating tracked user ${entry.uid}: ${error instanceof Error ? error.message : String(error)}`,
+        });
+      }
       await new Promise((resolve) => setTimeout(resolve, 5000));
     }
     client.log({ prefix: 'TRACKING', message: "the osu!droid score tracking system's entries has been updated." });
