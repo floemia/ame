@@ -12,13 +12,6 @@ export abstract class TimeHelper {
   }
 
   /**
-   * Returns The time in ISO format.
-   */
-  static nowFormatted(): string {
-    return new Date().toISOString();
-  }
-
-  /**
    * Returns the time in MM:SS format.
    * @param seconds The time in seconds.
    */

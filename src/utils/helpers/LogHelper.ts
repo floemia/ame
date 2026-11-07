@@ -1,5 +1,4 @@
 import { client } from '@base';
-import { TimeHelper } from '@utils/helpers';
 import { SlashCommand } from '@structures/core';
 import chalk from 'chalk';
 import { ClientEvents } from 'discord.js';
@@ -52,7 +51,7 @@ export abstract class LogHelper {
   static main(params: LogOptions): void {
     const { type = 'log', command, event, message } = params;
     const isError = type == 'error';
-    const date = TimeHelper.nowFormatted();
+    const date = new Date().toLocaleString('es-ES');
     let prefix = params.prefix;
 
     if (isError) prefix = 'ERROR';
