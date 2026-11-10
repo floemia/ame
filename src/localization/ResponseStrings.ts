@@ -5,7 +5,7 @@ import { TextChannel } from 'discord.js';
 
 export class ResponseStrings {
   done = 'done!!';
-  error = 'an error has ocurred... <@596481414426525696> check logs now!!!';
+  error = `an error has ocurred... <@${client.config.developer}> check logs now!!!`;
   user_dne = 'that user doesnt exist!!';
   no_link = 'you dont have a linked osu!droid profile!!! use `/link` first💢';
   mention_no_link = 'that user doesnt have a linked osu!droid profile... 🥺';
@@ -30,21 +30,18 @@ export class ResponseStrings {
       },
     },
     link: {
-      success(user: DroidUser) {
-        const str = DroidHelper.userToString(user);
-        return `your Discord was successfully linked to  ${str}.`;
-      },
+      success: (user: DroidUser) => `your Discord was successfully linked to  ${DroidHelper.userToString(user)}`,
     },
     recent: {
       success: (user: DroidUser, index?: number) =>
-        `${EmojiHelper.getRandomAmeEmoji()} | recent score${index ? ` #${index}` : ''} of  ${DroidHelper.userToString(user)}:`,
+        `${EmojiHelper.getRandomAmeEmoji()} | recent score${index ? ` #${index}` : ''} of **${user.username}**:`,
     },
     compare: {
       no_cache: 'there isnt any beatmap being talked about here!!!💢',
       no_map: 'i couldnt find that beatmap... 🥺',
       no_score: 'you dont have any scores in that beatmap!! smh💢',
       success: (user: DroidUser) =>
-        `${EmojiHelper.getRandomAmeEmoji()} | comparison score from  ${DroidHelper.userToString(user)}:\n-# ${client.config.emojis.warn} the osu!droid public API currently doesn't return mods! expect errors!`,
+        `${EmojiHelper.getRandomAmeEmoji()} | comparison score from **${user.username}**:\n-# ${client.config.emojis.warn} the osu!droid public API currently doesn't return mods! expect errors!`,
     },
     config: {
       prefix_set: (prefix: string) => `done!! the message command prefix is now \`${prefix}\`!!`,
@@ -58,8 +55,7 @@ export class ResponseStrings {
         `ive removed  ${DroidHelper.userToString(user)}  from the score tracking system...🥺`,
     },
     profile: {
-      success: (user: DroidUser) =>
-        `${EmojiHelper.getRandomAmeEmoji()} | osu!droid profile of  ${DroidHelper.userToString(user)}:`,
+      success: (user: DroidUser) => `${EmojiHelper.getRandomAmeEmoji()} | osu!droid profile of **${user.username}**:`,
     },
   };
 }

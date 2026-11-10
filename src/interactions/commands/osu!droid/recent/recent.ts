@@ -10,7 +10,7 @@ export const run: SlashCommand['run'] = async (client, interaction, strings) => 
   const user = await DroidHelper.getUser(interaction);
   if (!user) return;
   let index = interaction.options.getInteger('index') || 1;
-  const scores = user.scores.recent.slice(0, 50);
+  const scores = user.scores.recent;
   if (!scores.length) throw new AmeError(strings.no_scores);
   if (index > scores.length) index = scores.length;
 

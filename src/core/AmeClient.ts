@@ -62,9 +62,9 @@ export class AmeClient extends Client {
       prefix: 'START',
       message: 'executing startup routine...',
     });
-    this.login(process.env.TOKEN);
-    EventHandler.registerEvents();
-    InteractionHandler.registerInteractions();
-    MessageCommandHandler.registerMessageCommands();
+    await this.login(process.env.TOKEN);
+    await EventHandler.registerEvents();
+    await InteractionHandler.registerInteractions();
+    await MessageCommandHandler.registerMessageCommands();
   }
 }

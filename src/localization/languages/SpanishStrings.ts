@@ -31,23 +31,20 @@ export class SpanishStrings extends ResponseStrings {
       },
     },
     link: {
-      success(user: DroidUser) {
-        const str = DroidHelper.userToString(user);
-        return `tu Discord se vinculó correctamente a  ${str}!!`;
-      },
+      success: (user: DroidUser) => `tu Discord se vinculó correctamente a  ${DroidHelper.userToString(user)}!!`,
     },
     recent: {
       success: (user: DroidUser, index?: number) =>
-        `${EmojiHelper.getRandomAmeEmoji()} | score reciente${index ? ` #${index}` : ''} de  ${DroidHelper.userToString(user)}:`,
+        `${EmojiHelper.getRandomAmeEmoji()} | score reciente${index ? ` #${index}` : ''} de **${user.username}**:`,
     },
     compare: {
       no_cache: 'no hay ningún beatmap siendo conversado en este canal!!!💢💢',
       no_map: 'no pude encontrar ese beatmap... 🥺',
       no_score: 'no tienes ningún score en ese beatmap!! smh💢',
       success: (user: DroidUser) =>
-        `${EmojiHelper.getRandomAmeEmoji()} | score de comparación de ${DroidHelper.userToString(user)}:\n-# ${client.config.emojis.warn} la API pública de osu!droid no retorna mods! habrán errores!`,
+        `${EmojiHelper.getRandomAmeEmoji()} | score de comparación de **${user.username}**:\n-# ${client.config.emojis.warn} la API pública de osu!droid no retorna mods! habrán errores!`,
     },
-    error: 'ocurrió un error al ejecutar este comando... <@:596481414426525696:> revisa la consola!!!!',
+    error: `ocurrió un error al ejecutar este comando... <@:${client.config.developer}:> revisa la consola!!!!`,
     config: {
       prefix_set: (prefix: string) => `listo!! el prefijo de los comandos de mensaje ahora es \`${prefix}\`!!`,
     },
@@ -60,8 +57,7 @@ export class SpanishStrings extends ResponseStrings {
         `quité a  ${DroidHelper.userToString(user)}  del sistema de tracking de scores...🥺`,
     },
     profile: {
-      success: (user: DroidUser) =>
-        `${EmojiHelper.getRandomAmeEmoji()} | perfil de osu!droid de  ${DroidHelper.userToString(user)}:`,
+      success: (user: DroidUser) => `${EmojiHelper.getRandomAmeEmoji()} | perfil de osu!droid de **${user.username}**:`,
     },
   };
 }
