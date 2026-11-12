@@ -72,6 +72,6 @@ export abstract class ActivityCycle {
     const selected = candidates[Math.floor(Math.random() * candidates.length)];
     if (this.previous_activities.length == length) this.previous_activities.shift();
     this.previous_activities.push(selected);
-    client.user!.setActivity({ type: ActivityType.Playing, name: selected });
+    client.user!.setActivity({ type: ActivityType.Custom, name: 'status', state: selected });
   }
 }
