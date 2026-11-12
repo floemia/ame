@@ -142,3 +142,7 @@ CLIENT_ID=adjsaduc9oh2li22sddk      # your bot's client id!
   }
 }
 ```
+
+## credits
+
+the artists that created the profile pictures ame uses are listed in [./assets/avatars](./assets/avatars/). each filename is their twitter username. thank you!
