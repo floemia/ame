@@ -2,6 +2,7 @@ import { AmeError } from '@core';
 import { CooldownHandler } from '@handlers';
 import { Event } from '@structures/core';
 import { DroidHelper, EmojiHelper, InteractionHelper, LocalizationHelper } from '@utils/helpers';
+import consola from 'consola';
 import { CacheManager, DatabaseManager } from '@utils/managers';
 
 export const name = 'messageCreate';
@@ -52,7 +53,7 @@ export const run: Event<'messageCreate'>['run'] = async (client, message) => {
     await message.channel.sendTyping();
     await command.run(client, message, strings, args);
   } catch (error: any) {
-    if (!(error instanceof AmeError)) client.log({ type: 'error', message: error.stack });
+    if (!(error instanceof AmeError)) consola.error(error.stack);
 
     const container = InteractionHelper.createContainer({
       type: 'error',

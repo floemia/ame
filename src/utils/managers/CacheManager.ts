@@ -1,4 +1,5 @@
 import { client } from '@base';
+import consola from 'consola';
 import { DroidScore, DroidUser } from '@floemia/osu-droid-tools';
 import { ScoreContainerBuilder } from '@utils/builders';
 import { TextBasedChannel } from 'discord.js';
@@ -75,8 +76,8 @@ export abstract class CacheManager {
   static storeChannelBeatmap(channel: TextBasedChannel, idOrHash: string | number): void {
     this.channel_beatmap.set(channel.id, idOrHash);
     if (client.config.debug)
-      client.log({
-        prefix: 'DEBUG',
+      consola.debug({
+        tag: 'DEBUG',
         message: `beatmap for channel ${channel.id} is now ${idOrHash}`,
       });
   }

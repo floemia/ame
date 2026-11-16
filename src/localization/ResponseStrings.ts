@@ -30,7 +30,7 @@ export class ResponseStrings {
       },
     },
     link: {
-      success: (user: DroidUser) => `your Discord was successfully linked to  ${DroidHelper.userToString(user)}`,
+      success: (user: DroidUser) => `your discord was successfully linked to  ${DroidHelper.userToString(user)}`,
     },
     recent: {
       success: (user: DroidUser, index?: number) =>
@@ -40,8 +40,7 @@ export class ResponseStrings {
       no_cache: 'there isnt any beatmap being talked about here!!!💢',
       no_map: 'i couldnt find that beatmap... 🥺',
       no_score: 'you dont have any scores in that beatmap!! smh💢',
-      success: (user: DroidUser) =>
-        `${EmojiHelper.getRandomAmeEmoji()} | comparison score from **${user.username}**:\n-# ${client.config.emojis.warn} the osu!droid public API currently doesn't return mods! expect errors!`,
+      success: (user: DroidUser) => `${EmojiHelper.getRandomAmeEmoji()} | comparison score from **${user.username}**:`,
     },
     config: {
       prefix_set: (prefix: string) => `done!! the message command prefix is now \`${prefix}\`!!`,
@@ -56,6 +55,12 @@ export class ResponseStrings {
     },
     profile: {
       success: (user: DroidUser) => `${EmojiHelper.getRandomAmeEmoji()} | osu!droid profile of **${user.username}**:`,
+    },
+    leaderboard: {
+      global: (type: string) => `${EmojiHelper.getRandomAmeEmoji()} | osu!droid global ${type} leaderboard:`,
+      beatmap: (title: string, type: string) =>
+        `${EmojiHelper.getRandomAmeEmoji()} | osu!droid ${type} leaderboard for ${title}:`,
+      empty: 'there are no entries in that leaderboard... 🥺',
     },
   };
 }

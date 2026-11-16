@@ -1,4 +1,5 @@
 import { client } from '@base';
+import consola from 'consola';
 import { AmeError } from '@core';
 import { ResponseStrings } from '@localization';
 import { CacheManager, DatabaseManager } from '@utils/managers';
@@ -21,7 +22,7 @@ import {
   Modes,
   ModMap,
 } from '@rian8337/osu-base';
-import { DroidScore, DroidUser } from '@floemia/osu-droid-tools';
+import { DroidScore, DroidServer, DroidUser } from '@floemia/osu-droid-tools';
 
 /**
  * Helps with osu!droid related operations.
@@ -230,6 +231,7 @@ export abstract class DroidHelper {
       } else {
         const id = DroidHelper.getBeatmapId(beatmapIDURL);
         if (!id) throw new AmeError(strings.commands.compare.no_map);
+        hashOrID = id;
       }
     }
 
@@ -241,12 +243,13 @@ export abstract class DroidHelper {
     }
 
     if (!hashOrID) {
-      if (typeof input == 'string' || 'number') {
-        const id = typeof input == 'string' ? DroidHelper.getBeatmapId(input) : (input as number);
-        if (!id) return null;
-        hashOrID = id;
+      if (typeof input == 'string') {
+        hashOrID = DroidHelper.getBeatmapId(input) ?? input;
+      } else if (typeof input == 'number') {
+        hashOrID = input;
+      } else {
+        return null;
       }
-      hashOrID = input as string | number;
     }
 
     const request = new OsuAPIRequestBuilder()
@@ -277,8 +280,8 @@ export abstract class DroidHelper {
     }
 
     if (client.config.debug)
-      client.log({
-        prefix: 'DEBUG',
+      consola.debug({
+        tag: 'DEBUG',
         message: `had to get beatmap ${mapinfo.beatmap_id} from osu.ppy.sh/osu/`,
       });
     let beatmap_file;
@@ -289,8 +292,7 @@ export abstract class DroidHelper {
       if (data.status >= 500) throw new Error(text);
       beatmap_file = text;
     } catch (e) {
-      client.log({
-        type: 'error',
+      consola.error({
         message: `Requesting beatmap ${hash} failed, aborting`,
       });
       return null;
@@ -351,10 +353,28 @@ export abstract class DroidHelper {
     return null;
   }
 
-  static async compareFromUID(uid: number, beatmap: MapInfo, bestpp: boolean = true): Promise<DroidScore | undefined> {
-    const scores = await DroidScore.search({ user: uid, beatmapOrHash: beatmap, order: bestpp ? 'pp' : 'score' });
-    if (scores.length == 0) return undefined;
-    return scores[0];
+  /**
+   * Gets a user's best score in a beatmap.
+   * @param user The `DroidUser` to get the score from.
+   * @param map The beatmap to get the score in.
+   * @param order Whether to order the scores by `pp` or `score`. Defaults to `pp`.
+   */
+  static async compare(user: DroidUser, map: MapInfo<true>, order: 'score' | 'pp' = 'pp'): Promise<DroidScore | null> {
+    const lb_order = order == 'pp' ? (map.approved == 1 ? 'pp' : 'score') : 'score';
+
+    const scores = await user.getScores({ beatmapOrHash: map, order: lb_order });
+    const score = scores[0];
+    if (!score) return null;
+
+    const { personal_best, leaderboard } = await DroidServer.getMapLeaderboard({
+      beatmapOrHash: map,
+      user: user,
+      order: lb_order,
+    });
+    const leaderboard_score = personal_best ?? leaderboard.find((entry) => entry.id == score.id);
+    if (leaderboard_score) score.mods = leaderboard_score.mods;
+
+    return score;
   }
 
   static resolveUser(input: User | CommandInteraction): string | number {

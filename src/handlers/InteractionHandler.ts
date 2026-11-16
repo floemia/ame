@@ -3,6 +3,7 @@ import { FileManager } from '@utils/managers';
 import { SlashCommand, ContextMenuCommand } from '@structures/core';
 import { ContextMenuCommandBuilder, REST, Routes, type RESTPostAPIApplicationCommandsJSONBody } from 'discord.js';
 import path from 'path';
+import consola from 'consola';
 
 const interactions_path = path.join(__dirname, '../interactions');
 
@@ -17,8 +18,8 @@ export abstract class InteractionHandler {
     const devGuild = client.config.test_guild;
     if (!devGuild) throw new Error('No test guild provided in config.json');
 
-    client.log({
-      prefix: 'START',
+    consola.info({
+      tag: 'START',
       message: 'registering slash commands...',
     });
 
@@ -49,12 +50,12 @@ export abstract class InteractionHandler {
     const rest = new REST().setToken(process.env.TOKEN!);
     await rest.put(Routes.applicationGuildCommands(process.env.CLIENT_ID!, devGuild), { body: devCommands });
     await rest.put(Routes.applicationCommands(process.env.CLIENT_ID!), { body: commands });
-    client.log({
-      prefix: 'START',
+    consola.success({
+      tag: 'START',
       message: `${client.commands.size} slash commands were registered! (and ${client.dev_commands.size} developer ones!)`,
     });
-    client.log({
-      prefix: 'START',
+    consola.success({
+      tag: 'START',
       message: `${client.context_commands.size} context menu commands were registered!`,
     });
   }

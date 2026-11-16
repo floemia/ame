@@ -5,6 +5,7 @@ import { ChannelType, Guild, PermissionFlagsBits, TextChannel, TextDisplayBuilde
 import { TrackingUser } from '@structures/database';
 import { ScoreContainerBuilder } from '@utils/builders';
 import { LocalizationHelper } from '@utils/helpers';
+import consola from 'consola';
 
 export abstract class TrackingManager {
   /**
@@ -67,8 +68,8 @@ export abstract class TrackingManager {
         const droid_user = await DroidUser.get(user.uid);
 
         if (failed_once) {
-          client.log({
-            prefix: 'TRACKING',
+          consola.error({
+            tag: 'TRACKING',
             message: 'osu!droid API is reachable again, resuming tracking...',
           });
         }
@@ -79,18 +80,18 @@ export abstract class TrackingManager {
         const reason = error instanceof Error ? error.message : String(error);
 
         if (attempt > this.max_fetch_retries) {
-          client.log({
+          consola.error({
             type: 'error',
-            prefix: 'TRACKING',
+            tag: 'TRACKING',
             message: `could not fetch user ${user.uid} after ${this.max_fetch_retries} retries: ${reason}. the tracking system was stopped.`,
           });
           this.stop();
           return;
         }
 
-        client.log({
+        consola.warn({
           type: 'warn',
-          prefix: 'TRACKING',
+          tag: 'TRACKING',
           message: `could not fetch user ${user.uid} (retry ${attempt}/${this.max_fetch_retries}): ${reason}. retrying in ${this.fetch_retry_delay * attempt}s...`,
         });
 
@@ -117,8 +118,8 @@ export abstract class TrackingManager {
   static async start(): Promise<void> {
     this.running = true;
     this.entries = DatabaseManager.getTrackingUsers();
-    client.log({
-      prefix: 'TRACKING',
+    consola.info({
+      tag: 'TRACKING',
       message: `the osu!droid score tracking system is starting with ${this.entries.length} entries.`,
       color: client.config.colors.tracking,
     });
@@ -131,17 +132,17 @@ export abstract class TrackingManager {
           const user = await this.getUser(dbuser);
           if (!user) continue;
           let scores = user.scores.recent
-            .filter((score) => score.played_at.getTime() > dbuser.last_score_date)
+            .filter((score) => (score.played_at?.getTime() ?? 0) > dbuser.last_score_date)
             .slice(0, 3)
             .reverse();
           if (!scores.length) continue;
 
-          client.log({ prefix: 'TRACKING', message: `processing ${scores.length} scores from ${user.username}...` });
+          consola.info({ tag: 'TRACKING', message: `processing ${scores.length} scores from ${user.username}...` });
           for (const score of scores) {
             if (!this.running) break;
             DatabaseManager.updateTrackingUser(user);
             const container = await new ScoreContainerBuilder().setPlayer(user).setScore(score);
-            client.log({ prefix: 'TRACKING', message: `${score.filename} + ${score.mods.toString() || 'NM'}` });
+            consola.info({ tag: 'TRACKING', message: `${score.filename} + ${score.mods.toString() || 'NM'}` });
             for (const dbguild of dbuser.servers) {
               const guild = client.guilds.cache.get(dbguild);
               if (!guild) continue;
@@ -163,9 +164,9 @@ export abstract class TrackingManager {
             if (scores.length > 1) await new Promise((resolve) => setTimeout(resolve, 5000));
           }
         } catch (error) {
-          client.log({
+          consola.error({
             type: 'error',
-            prefix: 'TRACKING',
+            tag: 'TRACKING',
             message: `error while processing tracked user ${dbuser.uid}: ${error instanceof Error ? error.message : String(error)}`,
           });
         }
@@ -181,22 +182,22 @@ export abstract class TrackingManager {
     this.entries = DatabaseManager.getTrackingUsers();
     const prev_state = this.running;
     this.stop();
-    client.log({ prefix: 'TRACKING', message: `updating ${this.entries.length} entries...` });
+    consola.info({ tag: 'TRACKING', message: `updating ${this.entries.length} entries...` });
     for (const entry of this.entries) {
       try {
         const user = await this.getUser(entry);
         if (!user) continue;
         DatabaseManager.updateTrackingUser(user);
       } catch (error) {
-        client.log({
+        consola.error({
           type: 'error',
-          prefix: 'TRACKING',
+          tag: 'TRACKING',
           message: `error while updating tracked user ${entry.uid}: ${error instanceof Error ? error.message : String(error)}`,
         });
       }
       await new Promise((resolve) => setTimeout(resolve, 5000));
     }
-    client.log({ prefix: 'TRACKING', message: "the osu!droid score tracking system's entries has been updated." });
+    consola.success({ tag: 'TRACKING', message: "the osu!droid score tracking system's entries has been updated." });
     if (prev_state) this.start();
   }
 
@@ -205,7 +206,7 @@ export abstract class TrackingManager {
    */
   static stop(): void {
     if (this.running)
-      client.log({ prefix: 'TRACKING', message: 'the osu!droid score tracking system has been stopped.' });
+      consola.info({ tag: 'TRACKING', message: 'the osu!droid score tracking system has been stopped.' });
     this.running = false;
   }
 }

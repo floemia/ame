@@ -70,9 +70,9 @@ export class ScoreListContainerBuilder extends ContainerBuilder {
       const combo = score.max_combo.toLocaleString('en-US');
       const { n300, n100, n50, nmiss } = score.accuracy;
       const hits = `[${n300}/${n100}/${n50}/${nmiss}]`;
-      const set_at = `<t:${Math.floor(score.played_at.getTime() / 1000)}:R>`;
+      const set_at = score.played_at ? `<t:${Math.floor(score.played_at.getTime() / 1000)}:R>` : '';
       const number = page * this.scores_per_page + i + 1;
-      const stats = [rank, `${pp}dpp`, `${acc}%`, total_score, hits, `${combo}x`, set_at].join('  ');
+      const stats = [rank, `${pp}dpp`, `${acc}%`, total_score, hits, `${combo}x`, set_at].filter(Boolean).join('  ');
       container.addTextDisplayComponents((t) =>
         t.setContent(
           `**#${number}・${score.filename}${score.mods.size > 0 ? ` +${score.mods.toString()}` : ''}**\n${stats}`,

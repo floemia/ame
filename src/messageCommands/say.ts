@@ -1,5 +1,6 @@
 import { MessageCommand } from '@structures/core';
 import { TextChannel } from 'discord.js';
+import consola from 'consola';
 
 export const data: MessageCommand['data'] = {
   name: 'say',
@@ -20,6 +21,6 @@ export const run: MessageCommand['run'] = async (client, message, strings, args)
       await message.delete();
     }, Math.random() * 5000);
   } catch (e) {
-    console.log(e);
+    consola.error(e);
   }
 };

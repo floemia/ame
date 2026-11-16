@@ -2,6 +2,7 @@ import { client } from '@base';
 import { FileManager } from '@utils/managers';
 import { MessageCommand } from '@structures/core';
 import path from 'path';
+import consola from 'consola';
 
 const commands_path = path.join(__dirname, '../messageCommands');
 
@@ -13,8 +14,8 @@ export abstract class MessageCommandHandler {
    * Registers all message commands found in the message commands directory.
    */
   static async registerMessageCommands() {
-    client.log({
-      prefix: 'START',
+    consola.info({
+      tag: 'START',
       message: 'registering message commands...',
     });
 
@@ -29,8 +30,8 @@ export abstract class MessageCommandHandler {
       }
     }
 
-    client.log({
-      prefix: 'START',
+    consola.success({
+      tag: 'START',
       message: `${count} message commands registered!`,
     });
   }

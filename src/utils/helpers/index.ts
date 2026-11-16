@@ -1,5 +1,4 @@
 export * from './LocalizationHelper';
-export * from './LogHelper';
 export * from './TimeHelper';
 export * from './ColorHelper';
 export * from './InteractionHelper';

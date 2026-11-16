@@ -1,6 +1,7 @@
 import { Event } from '@structures/core';
 import { CooldownHandler } from '@handlers';
 import { InteractionHelper, LocalizationHelper } from '@utils/helpers';
+import consola from 'consola';
 import { AmeError } from '@core';
 
 export const name = 'interactionCreate';
@@ -26,7 +27,7 @@ export const run: Event<'interactionCreate'>['run'] = async (client, interaction
       if (error instanceof AmeError) {
         return InteractionHelper.replyError(interaction, error.message);
       }
-      client.log({ type: 'error', message: error.stack });
+      consola.error(error.stack);
       return InteractionHelper.replyError(interaction, strings.error);
     }
   }

@@ -2,8 +2,9 @@ import { Client, ClientEvents, Collection } from 'discord.js';
 import { ContextMenuCommand, MessageCommand, SlashCommand } from '@structures/core';
 import { EventHandler, InteractionHandler, MessageCommandHandler } from '@handlers';
 import config_file from '../../config.json';
-import { LogHelper, TimeHelper } from '@utils/helpers';
+import { TimeHelper } from '@utils/helpers';
 import { OsuAPIRequestBuilder } from '@rian8337/osu-base';
+import consola from 'consola';
 
 /**
  * Main instance of the bot.
@@ -40,11 +41,6 @@ export class AmeClient extends Client {
   events = new Collection<keyof ClientEvents, (client: AmeClient, ...args: any) => Promise<any>>();
 
   /**
-   * The client's logger.
-   */
-  log = LogHelper.main;
-
-  /**
    * Time since the bot was started.
    */
   startTime = TimeHelper.startTimer();
@@ -58,13 +54,10 @@ export class AmeClient extends Client {
    */
   async start(): Promise<void> {
     OsuAPIRequestBuilder.setAPIKey(process.env.OSU_API_KEY!);
-    this.log({
-      prefix: 'START',
-      message: 'executing startup routine...',
-    });
-    await this.login(process.env.TOKEN);
+    consola.start('executing startup routine...');
     await EventHandler.registerEvents();
     await InteractionHandler.registerInteractions();
     await MessageCommandHandler.registerMessageCommands();
+    await this.login(process.env.TOKEN);
   }
 }

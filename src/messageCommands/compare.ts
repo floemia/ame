@@ -31,11 +31,11 @@ export const run: MessageCommand['run'] = async (client, message, strings, args)
   const map = await DroidHelper.getBeatmap(beatmap);
   if (!map) throw new AmeError(strings.commands.compare.no_map);
 
-  const scores = await user.getScores({ beatmapOrHash: map, order: map.approved == 1 ? 'pp' : 'score' });
-  if (!scores || scores.length == 0) throw new AmeError(strings.commands.compare.no_score);
+  const score = await DroidHelper.compare(user, map);
+  if (!score) throw new AmeError(strings.commands.compare.no_score);
 
   const text = new TextDisplayBuilder().setContent(strings.commands.compare.success(user));
-  const container = await new ScoreContainerBuilder().setPlayer(user).setScore(scores[0]);
+  const container = await new ScoreContainerBuilder().setPlayer(user).setScore(score);
 
   await message.reply({
     components: [text, container],

@@ -1,6 +1,7 @@
 import { client } from '@base';
 import { FileManager } from '@utils/managers';
 import { Event } from '@structures/core';
+import consola from 'consola';
 import path from 'path';
 
 const eventsPath = path.join(__dirname, '../events');
@@ -13,8 +14,8 @@ export abstract class EventHandler {
    * Registers all client events found in the `events` directory.
    */
   public static async registerEvents() {
-    client.log({
-      prefix: 'START',
+    consola.info({
+      tag: 'START',
       message: 'registering events...',
     });
     const eventsFiles = FileManager.getJSFiles(eventsPath);
@@ -32,8 +33,8 @@ export abstract class EventHandler {
         }
       }
     }
-    client.log({
-      prefix: 'START',
+    consola.success({
+      tag: 'START',
       message: `${client.events.size} events registered!`,
     });
   }

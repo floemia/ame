@@ -11,10 +11,10 @@ export const run: ContextMenuCommand['run'] = async (client, interaction, string
   const user = await DroidHelper.getUser(interaction.user);
   if (!user) throw new AmeError(strings.no_link);
 
-  const scores = await user.getScores({ beatmapOrHash: beatmap, order: beatmap.approved == 1 ? 'pp' : 'score' });
-  if (scores.length == 0) throw new AmeError(strings.commands.compare.no_score);
+  const score = await DroidHelper.compare(user, beatmap);
+  if (!score) throw new AmeError(strings.commands.compare.no_score);
 
-  await InteractionHelper.replyScore(interaction, user, scores[0], strings);
+  await InteractionHelper.replyScore(interaction, user, score, strings);
 };
 
 export const data: ContextMenuCommand['data'] = new ContextMenuCommandBuilder()

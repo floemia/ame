@@ -66,7 +66,7 @@ export class ScoreContainerBuilder extends ContainerBuilder {
         minimumFractionDigits: 2,
       }) + '%';
 
-    const pp_str = map ? `${dpp} - ${pp}` : '';
+    const pp_str = map ? `${dpp}・${pp}` : '';
     const { n300, n100, n50, nmiss } = score.accuracy;
     let fc_pp_str = '';
     if (map && !score.isFC()) {
@@ -117,7 +117,10 @@ export class ScoreContainerBuilder extends ContainerBuilder {
         ),
     );
 
-    InteractionHelper.addSignatureToContainer(container, `<t:${score.played_at.getTime() / 1000}:R>`);
+    InteractionHelper.addSignatureToContainer(
+      container,
+      score.played_at ? `<t:${Math.floor(score.played_at.getTime() / 1000)}:R>` : undefined,
+    );
     CacheManager.storeScoreContainer(score, container);
 
     return container;

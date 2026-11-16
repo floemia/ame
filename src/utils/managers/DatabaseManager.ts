@@ -11,6 +11,7 @@ import {
 } from '@structures/database';
 import Database from 'better-sqlite3';
 import { Guild, TextChannel, User } from 'discord.js';
+import consola from 'consola';
 import path from 'path';
 
 const root = path.join(__dirname, '../../..');
@@ -75,8 +76,8 @@ export abstract class DatabaseManager {
       )
       .run(user.id, droidUser.id, Date.now());
     if (client.config.debug)
-      client.log({
-        prefix: 'DEBUG',
+      consola.debug({
+        tag: 'DEBUG',
         message: `linked user ${droidUser.id} - ${droidUser.id} to ${user.id} - ${user.username}, saved in link database`,
       });
   }
@@ -92,14 +93,14 @@ export abstract class DatabaseManager {
 
     if (droidUser) {
       if (client.config.debug)
-        client.log({
-          prefix: 'DEBUG',
+        consola.debug({
+          tag: 'DEBUG',
           message: `got linked user ${droidUser.uid} to ${user.id} - ${user.username} from link database`,
         });
     } else {
       if (client.config.debug)
-        client.log({
-          prefix: 'DEBUG',
+        consola.debug({
+          tag: 'DEBUG',
           message: `${user.id} - ${user.username}, not in link database`,
         });
     }
@@ -114,7 +115,7 @@ export abstract class DatabaseManager {
   static getBeatmap(hash: string): string | undefined {
     const entry = this.getDatabase().prepare('SELECT data FROM beatmaps WHERE hash = ?').get(hash) as BeatmapDBEntry;
     if (!entry) return;
-    if (client.config.debug) client.log({ prefix: 'DEBUG', message: `got beatmap ${hash} from the database` });
+    if (client.config.debug) consola.debug({ tag: 'DEBUG', message: `got beatmap ${hash} from the database` });
     return entry.data;
   }
 
@@ -135,7 +136,7 @@ export abstract class DatabaseManager {
     data = excluded.data`,
       )
       .run({ id, hash, data: osu_file });
-    if (client.config.debug) client.log({ prefix: 'DEBUG', message: `stored beatmap ${id} - ${hash} in the database` });
+    if (client.config.debug) consola.debug({ tag: 'DEBUG', message: `stored beatmap ${id} - ${hash} in the database` });
   }
 
   /**
@@ -144,7 +145,7 @@ export abstract class DatabaseManager {
    * @param guild The guild to track this user in.
    */
   static storeTrackingUser(user: DroidUser, guild: Guild): void {
-    const last_score_date = user.scores.recent[0]?.played_at.getTime() ?? Date.now();
+    const last_score_date = user.scores.recent[0]?.played_at?.getTime() ?? Date.now();
     const inDB = this.getTrackingUser(user);
 
     if (!inDB) {
@@ -153,8 +154,8 @@ export abstract class DatabaseManager {
         .run(user.id, JSON.stringify([guild.id]), last_score_date);
 
       if (client.config.debug)
-        client.log({
-          prefix: 'DEBUG',
+        consola.debug({
+          tag: 'DEBUG',
           message: `stored user ${user.username} - ${user.id} - guild ${guild.id} in the score tracking database`,
         });
     } else if (!inDB.servers.includes(guild.id)) {
@@ -164,8 +165,8 @@ export abstract class DatabaseManager {
         .run(JSON.stringify(inDB.servers), user.id);
 
       if (client.config.debug)
-        client.log({
-          prefix: 'DEBUG',
+        consola.debug({
+          tag: 'DEBUG',
           message: `added ${user.username} - ${user.id} to new guild ${guild.id} in the score tracking database`,
         });
     }
@@ -212,11 +213,11 @@ export abstract class DatabaseManager {
    * @param uid The osu!droid user ID.
    */
   static updateTrackingUser(user: DroidUser): void {
-    const time = user.scores.recent[0].played_at.getTime();
+    const time = user.scores.recent[0]?.played_at?.getTime() ?? Date.now();
     this.getDatabase().prepare('UPDATE tracking_users SET last_score_date = ? WHERE uid = ?').run(time, user.id);
     if (client.config.debug)
-      client.log({
-        prefix: 'DEBUG',
+      consola.debug({
+        tag: 'DEBUG',
         message: `entry ${user.id} - ${user.username} was updated with timestamp ${time} in the score tracking database`,
       });
   }
@@ -234,8 +235,8 @@ export abstract class DatabaseManager {
     if (inDB.servers.length == 1) {
       db.prepare('DELETE FROM tracking_users WHERE uid = ?').run(user.id);
       if (client.config.debug)
-        client.log({
-          prefix: 'DEBUG',
+        consola.debug({
+          tag: 'DEBUG',
           message: `removed ${user.username} - ${user.id} from the score tracking database`,
         });
       return;
@@ -244,8 +245,8 @@ export abstract class DatabaseManager {
     const new_servers = inDB.servers.filter((s) => s != guild.id);
     db.prepare('UPDATE tracking_users SET servers = ? WHERE uid = ?').run(JSON.stringify(new_servers), user.id);
     if (client.config.debug)
-      client.log({
-        prefix: 'DEBUG',
+      consola.debug({
+        tag: 'DEBUG',
         message: `removed ${user.username} - ${user.id} from guild ${guild.id} in the score tracking database`,
       });
   }
@@ -340,8 +341,8 @@ export abstract class DatabaseManager {
       .prepare('INSERT INTO server_configs (guild_id, prefix, tracking) VALUES (?, ?, ?)')
       .run(guild.id, '=', JSON.stringify(default_tracking));
     if (client.config.debug)
-      client.log({
-        prefix: 'DEBUG',
+      consola.debug({
+        tag: 'DEBUG',
         message: `added config for ${guild.id} in the server config database`,
       });
     return this.getGuildConfig(guild);

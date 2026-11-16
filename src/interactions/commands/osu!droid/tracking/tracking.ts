@@ -47,8 +47,8 @@ export const data: SlashCommand['data'] = new SlashCommandBuilder()
       .addUserOption((option) =>
         option
           .setName('user')
-          .setDescription('the Discord user linked to the osu!droid account.')
-          .setDescriptionLocalization('es-ES', 'el usuario de Discord vinculado al perfil de osu!droid.'),
+          .setDescription('the discord user linked to the osu!droid account.')
+          .setDescriptionLocalization('es-ES', 'el usuario de discord vinculado al perfil de osu!droid.'),
       )
       .addIntegerOption((option) =>
         option
@@ -71,8 +71,8 @@ export const data: SlashCommand['data'] = new SlashCommandBuilder()
       .addUserOption((option) =>
         option
           .setName('user')
-          .setDescription('the Discord user linked to the osu!droid account.')
-          .setDescriptionLocalization('es-ES', 'el usuario de Discord vinculado al perfil de osu!droid.'),
+          .setDescription('the discord user linked to the osu!droid account.')
+          .setDescriptionLocalization('es-ES', 'el usuario de discord vinculado al perfil de osu!droid.'),
       )
       .addIntegerOption((option) =>
         option
